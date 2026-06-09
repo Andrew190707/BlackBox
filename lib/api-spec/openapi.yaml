@@ -3,20 +3,35 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BlackBox Cyber Governance API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Security event log
+  - name: risk
+    description: Risk scoring and threat state
+  - name: breakers
+    description: Circuit breaker management
+  - name: lockdown
+    description: BlackBox Lockdown Protocol
+  - name: snapshots
+    description: Forensic snapshots
+  - name: deception
+    description: Deception assets
+  - name: incidents
+    description: Incident reports
+  - name: simulate
+    description: Attack simulation
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +39,332 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List security events (paginated)
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventList"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get a single event
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Event detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecurityEvent"
+        "404":
+          description: Not found
+
+  /risk/score:
+    get:
+      operationId: getRiskScore
+      tags: [risk]
+      summary: Current risk score and threat state
+      responses:
+        "200":
+          description: Risk score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskState"
+
+  /risk/history:
+    get:
+      operationId: getRiskHistory
+      tags: [risk]
+      summary: Risk score history (last 60 data points)
+      responses:
+        "200":
+          description: History array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskHistoryPoint"
+
+  /breakers:
+    get:
+      operationId: listBreakers
+      tags: [breakers]
+      summary: Get all circuit breaker statuses
+      responses:
+        "200":
+          description: Breaker map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakerMap"
+
+  /breakers/{name}/trip:
+    post:
+      operationId: tripBreaker
+      tags: [breakers]
+      summary: Manually trip a circuit breaker
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakerTripInput"
+      responses:
+        "200":
+          description: Updated breaker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakerState"
+        "404":
+          description: Not found
+
+  /breakers/{name}/reset:
+    post:
+      operationId: resetBreaker
+      tags: [breakers]
+      summary: Reset a circuit breaker
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated breaker
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakerState"
+        "404":
+          description: Not found
+
+  /lockdown:
+    get:
+      operationId: getLockdownState
+      tags: [lockdown]
+      summary: Get current lockdown state
+      responses:
+        "200":
+          description: Lockdown state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockdownState"
+
+  /lockdown/initiate:
+    post:
+      operationId: initiateLockdown
+      tags: [lockdown]
+      summary: Initiate BlackBox Lockdown Protocol
+      responses:
+        "200":
+          description: Lockdown started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockdownState"
+
+  /lockdown/lift:
+    post:
+      operationId: liftLockdown
+      tags: [lockdown]
+      summary: Lift lockdown
+      responses:
+        "200":
+          description: Lockdown lifted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockdownState"
+
+  /snapshots:
+    get:
+      operationId: listSnapshots
+      tags: [snapshots]
+      summary: List forensic snapshots
+      responses:
+        "200":
+          description: Snapshot list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SnapshotSummary"
+
+  /snapshots/{id}:
+    get:
+      operationId: getSnapshot
+      tags: [snapshots]
+      summary: Get full snapshot detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Full snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snapshot"
+        "404":
+          description: Not found
+
+  /deception/assets:
+    get:
+      operationId: listDeceptionAssets
+      tags: [deception]
+      summary: List deployed deception assets
+      responses:
+        "200":
+          description: Deception asset list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeceptionAsset"
+
+  /deception/deploy:
+    post:
+      operationId: deployDeception
+      tags: [deception]
+      summary: Manually deploy deception assets
+      responses:
+        "200":
+          description: Deployed assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeceptionAsset"
+
+  /incidents:
+    get:
+      operationId: listIncidents
+      tags: [incidents]
+      summary: List all incidents
+      responses:
+        "200":
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncidentSummary"
+
+  /incidents/{id}/report:
+    get:
+      operationId: getIncidentReport
+      tags: [incidents]
+      summary: Get full incident report
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Full incident report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentReport"
+        "404":
+          description: Not found
+
+  /simulate/attack:
+    post:
+      operationId: simulateAttack
+      tags: [simulate]
+      summary: Trigger demo attack sequence
+      responses:
+        "200":
+          description: Simulation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulateResult"
+
+  /simulate/reset:
+    post:
+      operationId: simulateReset
+      tags: [simulate]
+      summary: Reset all state to baseline
+      responses:
+        "200":
+          description: Reset complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulateResult"
+
+  /governance/policies:
+    get:
+      operationId: listPolicies
+      tags: [events]
+      summary: List governance policies
+      responses:
+        "200":
+          description: Policy list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GovernancePolicy"
+
+  /governance/trust:
+    get:
+      operationId: listTrustScores
+      tags: [events]
+      summary: List user trust scores
+      responses:
+        "200":
+          description: Trust score map
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserTrust"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +372,175 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    SecurityEvent:
+      type: object
+      required: [id, timestamp, eventType, user, source, details, riskDelta, threatState]
+      properties:
+        id:         { type: string }
+        timestamp:  { type: string }
+        eventType:  { type: string }
+        user:       { type: string }
+        source:     { type: string }
+        details:    { type: string }
+        riskDelta:  { type: number }
+        threatState: { type: string }
+
+    EventList:
+      type: object
+      required: [events, total]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecurityEvent"
+        total: { type: integer }
+
+    RiskState:
+      type: object
+      required: [score, threatState, updatedAt]
+      properties:
+        score:       { type: number }
+        threatState: { type: string }
+        updatedAt:   { type: string }
+
+    RiskHistoryPoint:
+      type: object
+      required: [timestamp, score, threatState]
+      properties:
+        timestamp:   { type: string }
+        score:       { type: number }
+        threatState: { type: string }
+
+    BreakerState:
+      type: object
+      required: [name, status]
+      properties:
+        name:       { type: string }
+        status:     { type: string }
+        trippedAt:  { type: ["string", "null"] }
+        reason:     { type: ["string", "null"] }
+
+    BreakerMap:
+      type: object
+      required: [breakers]
+      properties:
+        breakers:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakerState"
+
+    BreakerTripInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+
+    LockdownState:
+      type: object
+      required: [active, phase, initiatedAt]
+      properties:
+        active:       { type: boolean }
+        phase:        { type: integer }
+        initiatedAt:  { type: ["string", "null"] }
+        liftedAt:     { type: ["string", "null"] }
+        snapshotId:   { type: ["string", "null"] }
+
+    SnapshotSummary:
+      type: object
+      required: [id, timestamp, triggerRiskScore]
+      properties:
+        id:               { type: string }
+        timestamp:        { type: string }
+        triggerRiskScore: { type: number }
+
+    Snapshot:
+      type: object
+      required: [id, timestamp, triggerRiskScore, memorySnapshot, networkSnapshot, fileSnapshot, userSnapshot]
+      properties:
+        id:               { type: string }
+        timestamp:        { type: string }
+        triggerRiskScore: { type: number }
+        memorySnapshot:   { type: string }
+        networkSnapshot:  { type: string }
+        fileSnapshot:     { type: string }
+        userSnapshot:     { type: string }
+
+    DeceptionAsset:
+      type: object
+      required: [id, type, path, deployed, triggered]
+      properties:
+        id:         { type: string }
+        type:       { type: string }
+        path:       { type: string }
+        deployed:   { type: boolean }
+        triggered:  { type: boolean }
+        triggeredAt: { type: ["string", "null"] }
+
+    IncidentSummary:
+      type: object
+      required: [id, startTime, peakRiskScore, threatStateReached, resolved]
+      properties:
+        id:                { type: string }
+        startTime:         { type: string }
+        endTime:           { type: ["string", "null"] }
+        peakRiskScore:     { type: number }
+        threatStateReached: { type: string }
+        resolved:          { type: boolean }
+
+    IncidentTimelineEntry:
+      type: object
+      required: [time, event, significance]
+      properties:
+        time:         { type: string }
+        event:        { type: string }
+        significance: { type: string }
+
+    IncidentReport:
+      type: object
+      required: [incidentId, startTime, peakRiskScore, threatStateReached, timeline, breakersTripped, deceptionTriggered, honeyfilesAccessed, summary]
+      properties:
+        incidentId:          { type: string }
+        startTime:           { type: string }
+        endTime:             { type: ["string", "null"] }
+        peakRiskScore:       { type: number }
+        threatStateReached:  { type: string }
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/IncidentTimelineEntry"
+        breakersTripped:
+          type: array
+          items: { type: string }
+        deceptionTriggered:  { type: boolean }
+        honeyfilesAccessed:
+          type: array
+          items: { type: string }
+        snapshotId:          { type: ["string", "null"] }
+        summary:             { type: string }
+
+    SimulateResult:
+      type: object
+      required: [success, message]
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+
+    GovernancePolicy:
+      type: object
+      required: [resource, allowedUsers, maxVolumeMb]
+      properties:
+        resource:      { type: string }
+        allowedUsers:
+          type: array
+          items: { type: string }
+        maxVolumeMb:   { type: number }
+
+    UserTrust:
+      type: object
+      required: [user, score, lastActivity]
+      properties:
+        user:         { type: string }
+        score:        { type: number }
+        lastActivity: { type: string }

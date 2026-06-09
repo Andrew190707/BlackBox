@@ -1,36 +1,65 @@
-# [Project name]
+# BlackBox
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Autonomous Cyber Governance, Containment, Deception & Recovery dashboard — a real-time mission-control system for security operators to monitor threats, trip circuit breakers, initiate lockdowns, and reconstruct incidents.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/blackbox run dev` — run the frontend (port 19147)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (auto-provisioned)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 + ws (WebSockets)
 - DB: PostgreSQL + Drizzle ORM
+- Frontend: React 18 + Vite + Tailwind CSS + shadcn/ui
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth)
+- `lib/db/src/schema/` — Drizzle tables: events, snapshots, deception_assets, incidents
+- `artifacts/api-server/src/engines/` — BlackBox engine modules
+  - `state.ts` — In-memory risk score, circuit breakers, lockdown state
+  - `websocket.ts` — WebSocket broadcast manager
+  - `flightRecorder.ts` — Event logger + file/process monitoring
+  - `snapshot.ts` — Forensic snapshot engine
+  - `deception.ts` — Honeyfile + decoy credential deployment
+  - `lockdown.ts` — BlackBox Lockdown Protocol (3-phase)
+  - `simulation.ts` — End-to-end attack simulation demo
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/api-server/src/seed.ts` — Historical seed data (50 events + 1 past incident)
+- `artifacts/blackbox/src/` — React dashboard frontend
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- In-memory state for risk score, breakers, lockdown (not DB) — enables sub-millisecond reads and real-time WS broadcasts without DB round-trips
+- WebSocket path `/api/ws` is served on the same Express HTTP server via `http.createServer(app)` + `WebSocketServer({ server })`
+- Circuit breakers are pure state — they don't kill real connections (prototype constraint)
+- Honeyfiles are tracked in DB; triggering bumps risk score +40 and fires DECEPTION_TRIGGERED WS event
+- Attack simulation runs as a detached async chain — returns immediately, streams updates via WebSocket
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+BlackBox is a single-page mission control dashboard with:
+- **Threat State Banner** — full-width GREEN/YELLOW/ORANGE/RED with pulse on RED
+- **Risk Score Gauge** — animated SVG 0-100, color-coded by threat state
+- **Live Event Feed** — auto-scrolling, newest first, 100 max, special styling for honeyfile/lockdown events
+- **Circuit Breakers** — 5 breakers (vpn, database, api_tokens, uploads, remote_sessions) with manual trip/reset
+- **Lockdown Button** — double-confirm initiate, phase progress display, lift button
+- **Attack Simulation** — full end-to-end automated demo with real-time WS updates
+- **Forensic Snapshots** — point-in-time memory/network/file/user captures
+- **Deception Assets** — honeyfiles and decoy credentials with triggered status
+- **Incident Timeline** — chronological attack reconstruction with significance levels
+- **User Trust Scores** — per-user behavioral trust scoring
+- **Governance Policies** — resource access policy matrix
 
 ## User preferences
 
@@ -38,7 +67,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing `lib/db/src/schema/`, always run `pnpm run typecheck:libs` before typechecking artifacts
+- WebSocket is at `/api/ws`, not `/ws` — must match the paths array in artifact.toml if adding explicitly
+- The simulation modifies in-memory state and DB; use POST /api/simulate/reset to return to baseline
+- Flight recorder auto-generates random events every 5s when simulation is NOT running
 
 ## Pointers
 

@@ -1,0 +1,361 @@
+Build a full-stack cybersecurity prototype called BlackBox — an Autonomous Cyber Governance, Containment, Deception & Recovery system. This is not a SIEM, not an EDR, not a DLP. It is a Cyber Governance Layer that sits above all existing security tools and governs access to critical assets.
+
+TECH STACK
+
+Backend: Python 3.11 + FastAPI
+Frontend: React 18 + Tailwind CSS
+Database: SQLite (via SQLAlchemy) for event logs and state
+Real-time: WebSockets (FastAPI WebSocket) for live dashboard updates
+AI/ML: scikit-learn (Isolation Forest for anomaly detection)
+File monitoring: watchdog (cross-platform)
+Process monitoring: psutil (cross-platform)
+Package manager: pip for backend, npm for frontend
+Project structure: monorepo — /backend and /frontend folders
+
+
+PROJECT STRUCTURE
+blackbox/
+├── backend/
+│   ├── main.py                  # FastAPI app entry point
+│   ├── database.py              # SQLAlchemy setup, SQLite
+│   ├── models.py                # DB models: Event, Snapshot, Incident
+│   ├── engines/
+│   │   ├── flight_recorder.py   # Monitors file, process, login events
+│   │   ├── governance.py        # Access policy engine, trust scoring
+│   │   ├── prevention.py        # DLP rules, block/warn/allow logic
+│   │   ├── behavioral_ai.py     # Isolation Forest anomaly detection
+│   │   ├── circuit_breaker.py   # Individual trust path breakers
+│   │   ├── lockdown.py          # BlackBox Lockdown Protocol (BLP)
+│   │   ├── state_preservation.py# Forensic snapshot engine
+│   │   ├── deception.py         # Honeyfile, decoy DB, fake cred deployment
+│   │   ├── recovery.py          # Credential rotation, backup restore
+│   │   └── incident.py          # Timeline reconstruction, report generation
+│   ├── routers/
+│   │   ├── events.py            # GET /events, GET /events/{id}
+│   │   ├── risk.py              # GET /risk/score, GET /risk/state
+│   │   ├── breakers.py          # GET /breakers, POST /breakers/{name}/trip, POST /breakers/{name}/reset
+│   │   ├── lockdown.py          # POST /lockdown/initiate, POST /lockdown/lift
+│   │   ├── snapshots.py         # GET /snapshots, GET /snapshots/{id}
+│   │   ├── deception.py         # GET /deception/assets, POST /deception/deploy
+│   │   └── incidents.py         # GET /incidents, GET /incidents/{id}/report
+│   └── websocket.py             # WebSocket broadcast manager
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/
+│   │   │   ├── ThreatStateBar.jsx      # Green/Yellow/Orange/Red banner
+│   │   │   ├── RiskScoreGauge.jsx      # Animated 0-100 gauge
+│   │   │   ├── EventFeed.jsx           # Real-time scrolling event log
+│   │   │   ├── CircuitBreakerPanel.jsx # 5 breaker switches with status
+│   │   │   ├── LockdownButton.jsx      # Big red initiate button
+│   │   │   ├── SnapshotViewer.jsx      # Forensic snapshot display
+│   │   │   ├── DeceptionAssets.jsx     # Honeyfile/decoy DB list
+│   │   │   ├── IncidentTimeline.jsx    # Chronological attack timeline
+│   │   │   └── RecoveryPanel.jsx       # Recovery action buttons
+│   │   └── hooks/
+│   │       └── useWebSocket.js         # WS connection + reconnect logic
+│   └── package.json
+└── README.md
+
+BACKEND — DETAILED IMPLEMENTATION
+1. Flight Recorder Engine (engines/flight_recorder.py)
+Use watchdog to monitor a configurable directory (default: /tmp/blackbox_watch on Linux, C:\blackbox_watch on Windows — create it if it doesn't exist).
+Monitor and log these event types to the events DB table:
+
+FILE_ACCESS — file opened/read
+FILE_CREATE — new file created
+FILE_MODIFY — file modified
+FILE_DELETE — file deleted
+PROCESS_CREATE — new process started (use psutil process iter diff)
+LOGIN — simulated login events (generate realistic fake ones for demo)
+
+Each event must have:
+python{
+  "id": uuid,
+  "timestamp": ISO datetime,
+  "event_type": string,
+  "user": string,
+  "source": string,        # file path or process name
+  "details": JSON string,  # extra metadata
+  "risk_delta": float,     # how much this event affects risk score
+  "threat_state": string   # GREEN / YELLOW / ORANGE / RED
+}
+Run the file watcher in a background thread using asyncio.run_in_executor. Broadcast every new event over WebSocket.
+2. Behavioral Intelligence Engine (engines/behavioral_ai.py)
+Use scikit-learn Isolation Forest to detect anomalies.
+Maintain a sliding window of the last 200 events. Extract these features per event window:
+
+events_per_minute — event rate
+unique_files_accessed — distinct files touched
+data_volume_mb — estimated bytes accessed (simulate if real data unavailable)
+process_count — number of unique processes
+hour_of_day — time-based feature
+
+Train the Isolation Forest on first 50 events (warm-up period), then run predict() on each new event window.
+Compute a Risk Score 0–100:
+python# anomaly_score from IsolationForest ranges -1 to 1
+# map to 0–100:
+risk = max(0, min(100, (1 - anomaly_score) * 50))
+# also add rule-based boosts:
+# +30 if data_volume_mb > 500 in last 5 mins
+# +20 if events_per_minute > 100
+# +15 if LOGIN event at unusual hour (outside 8am–8pm)
+Determine Threat State from risk score:
+
+0–40 → GREEN
+41–70 → YELLOW
+71–90 → ORANGE
+91–100 → RED
+
+Expose current risk score and threat state via /risk/score endpoint. Broadcast changes over WebSocket.
+3. Circuit Breaker Engine (engines/circuit_breaker.py)
+Maintain 5 independent circuit breakers as state objects:
+pythonBREAKERS = {
+  "vpn":             {"status": "CLOSED", "tripped_at": None, "reason": None},
+  "database":        {"status": "CLOSED", "tripped_at": None, "reason": None},
+  "api_tokens":      {"status": "CLOSED", "tripped_at": None, "reason": None},
+  "uploads":         {"status": "CLOSED", "tripped_at": None, "reason": None},
+  "remote_sessions": {"status": "CLOSED", "tripped_at": None, "reason": None},
+}
+Status values: CLOSED (normal), TRIPPED (severed), RESET (manually restored).
+Implement:
+
+auto_trip(risk_score) — automatically trips breakers based on thresholds:
+
+Risk > 70 → trip uploads and remote_sessions
+Risk > 80 → also trip api_tokens
+Risk > 90 → trip all breakers
+
+
+manual_trip(name, reason) — operator can trip individual breakers
+reset_breaker(name) — restore a single breaker
+Every trip/reset is logged as an event and broadcast over WebSocket
+
+4. Governance Engine (engines/governance.py)
+Implement a simple policy engine with configurable rules:
+pythonPOLICIES = [
+  {"resource": "customer_db",    "allowed_users": ["admin", "analyst"], "max_volume_mb": 100},
+  {"resource": "payroll_data",   "allowed_users": ["hr_admin"],          "max_volume_mb": 50},
+  {"resource": "source_code",    "allowed_users": ["dev_lead", "admin"], "max_volume_mb": 500},
+  {"resource": "executive_docs", "allowed_users": ["ceo", "cfo"],        "max_volume_mb": 10},
+]
+Evaluate each access request against policies and return ALLOW, WARN, or BLOCK. Log every decision as an event.
+Maintain a User Trust Score per user (starts at 100, decreases on policy violations, increases over time with clean behavior). Store in SQLite.
+5. BlackBox Lockdown Protocol (engines/lockdown.py)
+Three-phase lockdown sequence. Expose as async function that runs the phases in order:
+Phase 1 — Evidence preservation (calls state_preservation.py):
+
+Trigger forensic snapshot immediately
+Log: LOCKDOWN_PHASE1_COMPLETE
+
+Phase 2 — Trust severance (calls circuit_breaker.py):
+
+Trip ALL circuit breakers simultaneously
+Disable all simulated external connections
+Log: LOCKDOWN_PHASE2_COMPLETE
+
+Phase 3 — Asset protection:
+
+Set all monitored resources to READ_ONLY mode (update DB flag)
+Deploy deception assets (calls deception.py)
+Log: LOCKDOWN_PHASE3_COMPLETE
+
+Store lockdown state in DB. Broadcast each phase completion over WebSocket so the dashboard updates in real time.
+6. State Preservation Engine (engines/state_preservation.py)
+When triggered, collect and store a forensic snapshot:
+python{
+  "snapshot_id": uuid,
+  "timestamp": ISO datetime,
+  "trigger_risk_score": float,
+  "memory_snapshot": {
+    "running_processes": [list from psutil],
+    "process_count": int,
+    "memory_usage_mb": float
+  },
+  "network_snapshot": {
+    "active_connections": [list from psutil.net_connections()],
+    "open_ports": [list],
+  },
+  "file_snapshot": {
+    "recently_modified": [last 50 events of type FILE_MODIFY],
+    "recently_deleted": [last 20 events of type FILE_DELETE],
+  },
+  "user_snapshot": {
+    "active_users": [list of users with recent events],
+    "trust_scores": {user: score}
+  }
+}
+Store snapshot as JSON in SQLite. Expose via /snapshots endpoint.
+7. Deception Layer (engines/deception.py)
+Deploy fake assets on lockdown:
+Honeyfiles — create actual files in the watched directory:
+/tmp/blackbox_watch/Payroll_2026.xlsx        (empty file with .xlsx extension)
+/tmp/blackbox_watch/ExecutivePasswords.txt
+/tmp/blackbox_watch/CryptoWalletBackup.txt
+/tmp/blackbox_watch/AWS_AccessKeys.csv
+When any honeyfile is accessed (detected by flight recorder), immediately:
+
+Log event type HONEYFILE_TRIGGERED with attacker details
+Boost risk score by +40
+Broadcast DECEPTION_TRIGGERED alert over WebSocket
+
+Decoy credentials — store a list of fake username/password pairs in DB:
+pythonDECOY_CREDS = [
+  {"username": "admin_backup",  "password": "Adm1n@2026!"},
+  {"username": "db_root",       "password": "DBr00t#Secure"},
+  {"username": "svc_account",   "password": "Svc@cc0unt99"},
+]
+Any use of these creds triggers DECOY_CRED_USED event.
+8. Incident Reconstruction (engines/incident.py)
+When a lockdown concludes or is requested, generate a full incident report:
+
+Pull all events from DB between incident start and end time
+Sort chronologically
+Generate a structured timeline:
+
+python{
+  "incident_id": uuid,
+  "start_time": datetime,
+  "end_time": datetime,
+  "peak_risk_score": float,
+  "threat_state_reached": "RED",
+  "timeline": [
+    {"time": "...", "event": "...", "significance": "high/medium/low"},
+    ...
+  ],
+  "breakers_tripped": [...],
+  "deception_triggered": bool,
+  "honeyfiles_accessed": [...],
+  "snapshot_id": uuid,
+  "summary": "Auto-generated plain English summary of the attack"
+}
+Expose via GET /incidents/{id}/report.
+
+FRONTEND — DETAILED IMPLEMENTATION
+Overall Layout
+Single-page dashboard. Dark theme (black/dark gray background). Layout:
+
+Top bar: BlackBox logo (⚫ text), current time, connection status dot
+Threat state banner: Full-width colored bar — GREEN/YELLOW/ORANGE/RED with label
+Main grid (2 columns):
+
+Left column: Risk Score Gauge + Event Feed
+Right column: Circuit Breaker Panel + Lockdown Button
+
+
+Bottom section (3 columns): Snapshot Viewer | Deception Assets | Incident Timeline
+
+ThreatStateBar.jsx
+Full-width banner. Colors:
+
+GREEN → bg-green-600
+YELLOW → bg-yellow-500
+ORANGE → bg-orange-500
+RED → bg-red-600 with a slow pulse animation (animate-pulse)
+
+Shows: state name + description text (e.g. "Confirmed breach — Lockdown Protocol active")
+RiskScoreGauge.jsx
+Circular SVG gauge, 0–100. Arc color transitions:
+
+0–40: green stroke
+41–70: yellow stroke
+71–90: orange stroke
+91–100: red stroke
+
+Large number in center showing current score. Animates smoothly on score change using CSS transition.
+EventFeed.jsx
+Auto-scrolling list of events. Each row shows:
+
+Timestamp (relative: "2s ago")
+Event type badge (colored pill)
+User + source
+Risk delta (red +X or green -X)
+
+Newest events appear at top. Max 100 events visible. HONEYFILE_TRIGGERED and LOCKDOWN_* events get a highlighted row with a colored left border.
+CircuitBreakerPanel.jsx
+5 breaker switches in a grid. Each shows:
+
+Breaker name
+Status: CLOSED (green dot) / TRIPPED (red dot, flashing)
+Time since tripped (if applicable)
+Manual trip / reset button
+
+Clicking trip/reset calls the API and updates immediately via WebSocket.
+LockdownButton.jsx
+Large prominent button. When system is NOT in lockdown:
+
+Red background, white text: "INITIATE LOCKDOWN"
+Requires double-click confirm (first click shows "CONFIRM?" state)
+
+When lockdown IS active:
+
+Shows phase progress: Phase 1 ✓ / Phase 2 ✓ / Phase 3 ✓
+"LIFT LOCKDOWN" button (grayed out, requires manual confirmation)
+
+IncidentTimeline.jsx
+Vertical timeline with colored dots per event significance. Auto-populates from incident events. Export button generates a plain-text report.
+useWebSocket.js
+Connect to ws://localhost:8000/ws. Auto-reconnect with exponential backoff. Dispatch incoming messages to update global state (use React Context or Zustand).
+Message types to handle:
+
+NEW_EVENT → prepend to event feed
+RISK_UPDATE → update gauge + threat state bar
+BREAKER_TRIPPED / BREAKER_RESET → update breaker panel
+LOCKDOWN_PHASE → update lockdown button phase indicator
+DECEPTION_TRIGGERED → flash alert banner
+
+
+DEMO SCENARIO (must work end-to-end)
+Implement a "Simulate Attack" button on the dashboard that triggers this sequence automatically:
+
+Generate 5 normal file access events (risk stays GREEN ~20)
+After 3 seconds: simulate mass file access — 200 FILE_ACCESS events in 10 seconds
+Risk score climbs to YELLOW then ORANGE
+Simulate a LOGIN event at 3:00 AM from unknown location → risk jumps to 85 (ORANGE→RED boundary)
+Risk hits 91 → Circuit Breaker auto-trips uploads and remote_sessions
+Risk hits 95 → all breakers trip → Lockdown Protocol auto-initiates
+Lockdown Phase 1: snapshot taken
+Lockdown Phase 2: all breakers confirm TRIPPED
+Lockdown Phase 3: honeyfiles deployed
+Attacker (simulated) accesses Payroll_2026.xlsx → HONEYFILE_TRIGGERED → DECEPTION alert fires
+Incident timeline auto-populates with full chronology
+
+Each step must have a visible delay (use asyncio.sleep) so the dashboard updates are visible in real time.
+
+API ENDPOINTS SUMMARY
+GET  /events                    → paginated event list
+GET  /events/{id}               → single event detail
+GET  /risk/score                → current risk score + threat state
+GET  /breakers                  → all breaker statuses
+POST /breakers/{name}/trip      → manually trip a breaker
+POST /breakers/{name}/reset     → reset a breaker
+POST /lockdown/initiate         → start BLP
+POST /lockdown/lift             → lift lockdown
+GET  /snapshots                 → list all snapshots
+GET  /snapshots/{id}            → full snapshot detail
+GET  /deception/assets          → list deployed deception assets
+POST /deception/deploy          → manually deploy deception
+GET  /incidents                 → list incidents
+GET  /incidents/{id}/report     → full incident report
+POST /simulate/attack           → trigger demo attack sequence
+WS   /ws                        → WebSocket for real-time updates
+
+IMPORTANT REQUIREMENTS
+
+Cross-platform: use os.path and pathlib everywhere. Never hardcode Linux-only paths. Use tempfile.gettempdir() for the watch directory base.
+No real system damage: this is a prototype. File monitoring should only watch the designated blackbox_watch directory. Never touch system files. The "circuit breakers" are simulated state — they do not actually kill real network connections.
+Auto-start: on Replit run, both backend (FastAPI on port 8000) and frontend (Vite dev server on port 5173) should start. Use a Procfile or replit.nix + shell script.
+Seed data: on first startup, populate the DB with 50 realistic historical events so the dashboard is not empty. Include a few past incidents.
+CORS: configure FastAPI CORS to allow requests from the Vite dev server.
+Error handling: all API endpoints return proper HTTP status codes. WebSocket reconnects gracefully.
+README.md: include setup instructions, architecture overview, and how to run the attack simulation demo.
+
+
+STARTUP COMMAND
+bash# Backend
+cd backend && pip install fastapi uvicorn sqlalchemy watchdog psutil scikit-learn numpy websockets && uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend
+cd frontend && npm install && npm run dev
+
+Build the complete working prototype. Every component listed must be functional. The attack simulation demo must run end-to-end with visible real-time dashboard updates.
