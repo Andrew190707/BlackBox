@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from 'zod';
 
@@ -89,6 +89,7 @@ export const GetRiskHistoryResponse = zod.array(GetRiskHistoryResponseItem)
 export const ListBreakersResponse = zod.object({
   "breakers": zod.array(zod.object({
   "name": zod.string(),
+  "label": zod.string().optional(),
   "status": zod.string(),
   "trippedAt": zod.string().nullish(),
   "reason": zod.string().nullish()
@@ -109,6 +110,7 @@ export const TripBreakerBody = zod.object({
 
 export const TripBreakerResponse = zod.object({
   "name": zod.string(),
+  "label": zod.string().optional(),
   "status": zod.string(),
   "trippedAt": zod.string().nullish(),
   "reason": zod.string().nullish()
@@ -124,6 +126,7 @@ export const ResetBreakerParams = zod.object({
 
 export const ResetBreakerResponse = zod.object({
   "name": zod.string(),
+  "label": zod.string().optional(),
   "status": zod.string(),
   "trippedAt": zod.string().nullish(),
   "reason": zod.string().nullish()
@@ -301,5 +304,48 @@ export const ListTrustScoresResponseItem = zod.object({
   "lastActivity": zod.string()
 })
 export const ListTrustScoresResponse = zod.array(ListTrustScoresResponseItem)
+
+
+/**
+ * @summary Get full trust graph (nodes + edges)
+ */
+export const GetTrustGraphResponse = zod.object({
+  "nodes": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "name": zod.string(),
+  "trustScore": zod.number(),
+  "classification": zod.string().nullish(),
+  "riskState": zod.string(),
+  "createdAt": zod.string().nullish()
+})),
+  "edges": zod.array(zod.object({
+  "id": zod.string(),
+  "fromNodeId": zod.string(),
+  "toNodeId": zod.string(),
+  "trustScore": zod.number(),
+  "severed": zod.boolean(),
+  "severedAt": zod.string().nullish(),
+  "createdAt": zod.string().nullish()
+}))
+})
+
+
+/**
+ * @summary Sever a specific trust path
+ */
+export const SeverTrustEdgeParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const SeverTrustEdgeResponse = zod.object({
+  "id": zod.string(),
+  "fromNodeId": zod.string(),
+  "toNodeId": zod.string(),
+  "trustScore": zod.number(),
+  "severed": zod.boolean(),
+  "severedAt": zod.string().nullish(),
+  "createdAt": zod.string().nullish()
+})
 
 

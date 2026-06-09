@@ -31,6 +31,15 @@ export function makeEventRiskDelta(eventType: string): number {
     case "LOCKDOWN_PHASE1_COMPLETE": return 0;
     case "LOCKDOWN_PHASE2_COMPLETE": return 0;
     case "LOCKDOWN_PHASE3_COMPLETE": return 0;
+    case "LOCKDOWN_PHASE4_COMPLETE": return 0;
+    case "IDENTITY_RESET_STARTED":   return 0;
+    case "IDENTITY_RESET_COMPLETED": return 0;
+    case "PASSWORD_ROTATION":        return 0;
+    case "API_KEY_ROTATION":         return 0;
+    case "TOKEN_REVOCATION":         return 0;
+    case "SESSION_REVOCATION":       return 0;
+    case "ACCESS_KEY_RESET":         return 0;
+    case "BREAKER_AUTO_TRIPPED":     return 0;
     default: return 1;
   }
 }

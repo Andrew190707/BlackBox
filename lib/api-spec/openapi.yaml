@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: BlackBox Cyber Governance API
 servers:
   - url: /api
@@ -26,6 +26,8 @@ tags:
     description: Incident reports
   - name: simulate
     description: Attack simulation
+  - name: trust
+    description: Trust graph
 paths:
   /healthz:
     get:
@@ -365,6 +367,39 @@ paths:
                 items:
                   $ref: "#/components/schemas/UserTrust"
 
+  /trust/graph:
+    get:
+      operationId: getTrustGraph
+      tags: [trust]
+      summary: Get full trust graph (nodes + edges)
+      responses:
+        "200":
+          description: Trust graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustGraph"
+
+  /trust/edges/{id}/sever:
+    post:
+      operationId: severTrustEdge
+      tags: [trust]
+      summary: Sever a specific trust path
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated edge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustEdge"
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -418,6 +453,7 @@ components:
       required: [name, status]
       properties:
         name:       { type: string }
+        label:      { type: string }
         status:     { type: string }
         trippedAt:  { type: ["string", "null"] }
         reason:     { type: ["string", "null"] }
@@ -544,3 +580,40 @@ components:
         user:         { type: string }
         score:        { type: number }
         lastActivity: { type: string }
+
+    TrustNode:
+      type: object
+      required: [id, type, name, trustScore, riskState]
+      properties:
+        id:             { type: string }
+        type:           { type: string }
+        name:           { type: string }
+        trustScore:     { type: number }
+        classification: { type: ["string", "null"] }
+        riskState:      { type: string }
+        createdAt:      { type: ["string", "null"] }
+
+    TrustEdge:
+      type: object
+      required: [id, fromNodeId, toNodeId, trustScore, severed]
+      properties:
+        id:          { type: string }
+        fromNodeId:  { type: string }
+        toNodeId:    { type: string }
+        trustScore:  { type: number }
+        severed:     { type: boolean }
+        severedAt:   { type: ["string", "null"] }
+        createdAt:   { type: ["string", "null"] }
+
+    TrustGraph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrustNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrustEdge"

@@ -7,7 +7,6 @@ import {
   useListSnapshots,
   useListDeceptionAssets,
   useListIncidents,
-  useListPolicies,
   useListTrustScores,
   useGetRiskHistory,
   useInitiateLockdown,
@@ -21,10 +20,11 @@ import {
   getGetLockdownStateQueryKey
 } from "@workspace/api-client-react";
 import { useBlackBoxWS } from "@/hooks/use-blackbox-ws";
+import { TrustGraphPanel } from "@/components/TrustGraphPanel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Activity, ShieldAlert, Zap, Lock, Unlock, Shield, TerminalSquare, Play, RefreshCw, Cpu, Users, Camera, History, FileText } from "lucide-react";
+import { Activity, ShieldAlert, Zap, Lock, Unlock, Shield, TerminalSquare, Play, RefreshCw, Cpu, Users, Camera, History, GitBranch } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 
@@ -34,23 +34,28 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className="bg-red-500/20 text-red-500 border-red-500/50 animate-pulse">LINK OFFLINE</Badge>;
 }
 
+const PHASE_LABELS = [
+  "",
+  "State Preservation",
+  "Trust Severance",
+  "Asset Protection",
+  "Identity Reset",
+];
+
 export function Dashboard() {
   const { status } = useBlackBoxWS();
   const queryClient = useQueryClient();
 
-  // Data fetching
   const { data: riskScore } = useGetRiskScore({ query: { queryKey: getGetRiskScoreQueryKey() } });
   const { data: riskHistory } = useGetRiskHistory();
   const { data: breakersData } = useListBreakers({ query: { queryKey: getListBreakersQueryKey() } });
   const { data: eventsData } = useListEvents({ limit: 100 });
   const { data: lockdown } = useGetLockdownState({ query: { queryKey: getGetLockdownStateQueryKey() } });
   const { data: assets } = useListDeceptionAssets();
-  const { data: policies } = useListPolicies();
   const { data: trustScores } = useListTrustScores();
   const { data: snapshots } = useListSnapshots();
   const { data: incidents } = useListIncidents();
 
-  // Polling fallback
   useEffect(() => {
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
@@ -59,7 +64,6 @@ export function Dashboard() {
     return () => clearInterval(interval);
   }, [queryClient]);
 
-  // Mutations
   const initiateLockdown = useInitiateLockdown();
   const liftLockdown = useLiftLockdown();
   const tripBreaker = useTripBreaker();
@@ -84,7 +88,6 @@ export function Dashboard() {
   };
 
   const [confirmLockdown, setConfirmLockdown] = useState(false);
-
   const handleLockdownClick = () => {
     if (!confirmLockdown) {
       setConfirmLockdown(true);
@@ -123,10 +126,11 @@ export function Dashboard() {
 
       {/* Main Grid */}
       <main className="flex-1 p-4 grid grid-cols-12 gap-4 overflow-hidden h-[calc(100vh-5rem)]">
-        
+
         {/* Left Column */}
         <div className="col-span-3 flex flex-col gap-4 overflow-y-auto pr-1">
-          
+
+          {/* Risk Score */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
             <CardHeader className="pb-2 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
@@ -137,9 +141,9 @@ export function Dashboard() {
               <div className="relative w-40 h-40 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted opacity-20" />
-                  <circle 
+                  <circle
                     cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"
-                    className={`transition-all duration-1000 ease-out ${riskScore?.threatState === 'RED' ? 'text-destructive' : 'text-primary'}`}
+                    className={`transition-all duration-1000 ease-out ${riskScore?.threatState === 'RED' ? 'text-destructive' : riskScore?.threatState === 'ORANGE' ? 'text-orange-500' : riskScore?.threatState === 'YELLOW' ? 'text-yellow-500' : 'text-primary'}`}
                     strokeDasharray={`${(riskScore?.score || 0) * 2.827} 282.7`}
                   />
                 </svg>
@@ -151,8 +155,9 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
+          {/* Containment Protocol */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
-             <CardHeader className="pb-2 pt-3 px-4">
+            <CardHeader className="pb-2 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <ShieldAlert className="w-3 h-3" /> Containment Protocol
               </CardTitle>
@@ -163,13 +168,24 @@ export function Dashboard() {
                   <div className="p-2 bg-destructive/10 border border-destructive/30 rounded text-destructive font-bold text-center animate-pulse uppercase tracking-widest text-xs">
                     LOCKDOWN ACTIVE
                   </div>
-                  <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                    <span className={lockdown.phase >= 1 ? 'text-primary' : ''}>Phase 1</span>
-                    <span className={lockdown.phase >= 2 ? 'text-primary' : ''}>Phase 2</span>
-                    <span className={lockdown.phase >= 3 ? 'text-primary' : ''}>Phase 3</span>
+                  <div className="space-y-1.5">
+                    {[1, 2, 3, 4].map((ph) => {
+                      const done = (lockdown.phase ?? 0) >= ph;
+                      const active = (lockdown.phase ?? 0) === ph;
+                      return (
+                        <div key={ph} className={`flex items-center gap-2 text-[10px] transition-colors ${done ? 'text-primary' : 'text-muted-foreground/40'}`}>
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 text-[8px] font-bold
+                            ${done ? 'border-primary bg-primary/20' : 'border-muted-foreground/30'}
+                            ${active ? 'animate-pulse' : ''}`}>
+                            {ph}
+                          </div>
+                          <span className="uppercase tracking-wider font-bold">{PHASE_LABELS[ph]}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="w-full border-primary text-primary hover:bg-primary/20 h-8"
                     onClick={() => liftLockdown.mutate()}
@@ -179,8 +195,8 @@ export function Dashboard() {
                   </Button>
                 </div>
               ) : (
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   className={`w-full h-12 text-sm font-bold tracking-widest uppercase transition-all ${confirmLockdown ? 'bg-red-700 animate-pulse' : ''}`}
                   onClick={handleLockdownClick}
                   disabled={initiateLockdown.isPending}
@@ -188,7 +204,7 @@ export function Dashboard() {
                   <Lock className="w-4 h-4 mr-2" /> {confirmLockdown ? "DOUBLE CLICK TO CONFIRM" : "INITIATE LOCKDOWN"}
                 </Button>
               )}
-              
+
               <div className="pt-3 border-t border-border flex gap-2">
                 <Button variant="secondary" className="flex-1 h-8 text-[10px]" onClick={handleSimulate} disabled={simulateAttack.isPending}>
                   <Play className="w-3 h-3 mr-2" /> SIMULATE
@@ -200,8 +216,9 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 min-h-0">
-             <CardHeader className="pb-2 pt-3 px-4 shrink-0">
+          {/* User Trust Scores */}
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+            <CardHeader className="pb-2 pt-3 px-4 shrink-0">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <Users className="w-3 h-3" /> User Trust Scores
               </CardTitle>
@@ -210,29 +227,16 @@ export function Dashboard() {
               {trustScores?.map(t => (
                 <div key={t.user} className="flex items-center justify-between p-1.5 border-b border-border/50">
                   <span className="truncate flex-1 text-[10px]">{t.user}</span>
-                  <span className={`tabular-nums font-bold ${t.score < 50 ? 'text-destructive' : 'text-primary'}`}>
-                    {t.score.toFixed(1)}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border bg-card/50 backdrop-blur flex-1 flex flex-col min-h-0">
-             <CardHeader className="pb-2 pt-3 px-4 shrink-0">
-              <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
-                <FileText className="w-3 h-3" /> Governance Policies
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 px-4 pb-4 overflow-y-auto">
-              {policies?.map(p => (
-                <div key={p.resource} className="p-2 border border-border/50 bg-background/20 rounded">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-[10px] text-primary">{p.resource}</span>
-                    <span className="text-[9px] text-muted-foreground border border-border px-1 py-0.5 rounded">{p.maxVolumeMb} MB MAX</span>
-                  </div>
-                  <div className="text-[9px] text-muted-foreground truncate">
-                    Users: {p.allowedUsers.join(', ')}
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-16 h-1 bg-muted/30 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${t.score > 80 ? 'bg-green-500' : t.score > 50 ? 'bg-yellow-500' : 'bg-destructive'}`}
+                        style={{ width: `${t.score}%` }}
+                      />
+                    </div>
+                    <span className={`tabular-nums font-bold text-[10px] w-8 text-right ${t.score < 50 ? 'text-destructive' : t.score < 80 ? 'text-yellow-500' : 'text-primary'}`}>
+                      {t.score.toFixed(0)}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -243,8 +247,10 @@ export function Dashboard() {
 
         {/* Middle Column */}
         <div className="col-span-6 flex flex-col gap-4 overflow-hidden">
+
+          {/* Live Event Feed */}
           <Card className="flex-[2] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden">
-             <CardHeader className="pb-2 pt-3 px-4 shrink-0">
+            <CardHeader className="pb-2 pt-3 px-4 shrink-0">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <Zap className="w-3 h-3" /> Live Event Feed
               </CardTitle>
@@ -252,20 +258,20 @@ export function Dashboard() {
             <CardContent className="flex-1 overflow-y-auto p-0 pb-4">
               <div className="space-y-px px-4 font-mono">
                 {eventsData?.events.map((evt) => {
-                  const isAlert = evt.eventType.includes('LOCKDOWN') || evt.eventType.includes('TRIGGERED') || evt.threatState === 'RED';
-                  const isWarning = evt.eventType.includes('FAILED') || evt.eventType.includes('ANOMALY') || evt.threatState === 'ORANGE';
+                  const isAlert = evt.eventType.includes('LOCKDOWN') || evt.eventType.includes('TRIGGERED') || evt.threatState === 'RED' || evt.eventType.includes('IDENTITY_RESET');
+                  const isWarning = evt.eventType.includes('FAILED') || evt.eventType.includes('ANOMALY') || evt.threatState === 'ORANGE' || evt.eventType.includes('BREAKER');
                   return (
-                    <div 
-                      key={evt.id} 
+                    <div
+                      key={evt.id}
                       className={`text-[10px] p-1.5 border-l-2 flex items-start gap-3 transition-colors
-                        ${isAlert ? 'bg-destructive/10 border-destructive text-destructive-foreground' : 
+                        ${isAlert ? 'bg-destructive/10 border-destructive text-destructive-foreground' :
                           isWarning ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500' :
                           'bg-background/30 border-primary/30 hover:bg-background/50 hover:border-primary'}
                       `}
                     >
                       <span className="text-muted-foreground tabular-nums shrink-0 w-16">{new Date(evt.timestamp).toLocaleTimeString([], {hour12: false})}</span>
-                      <span className={`font-bold shrink-0 w-32 truncate ${isAlert ? 'text-destructive' : isWarning ? 'text-yellow-500' : 'text-primary'}`}>{evt.eventType}</span>
-                      <span className="text-muted-foreground shrink-0 w-24 truncate">{evt.user}</span>
+                      <span className={`font-bold shrink-0 w-36 truncate ${isAlert ? 'text-destructive' : isWarning ? 'text-yellow-500' : 'text-primary'}`}>{evt.eventType}</span>
+                      <span className="text-muted-foreground shrink-0 w-20 truncate">{evt.user}</span>
                       <span className="flex-1 truncate opacity-80">{evt.details}</span>
                       {evt.riskDelta > 0 && <span className="text-destructive font-bold ml-auto tabular-nums">+{evt.riskDelta}</span>}
                     </div>
@@ -274,9 +280,10 @@ export function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
+          {/* Incident History */}
           <Card className="flex-[1] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden">
-             <CardHeader className="pb-2 pt-3 px-4 shrink-0">
+            <CardHeader className="pb-2 pt-3 px-4 shrink-0">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <History className="w-3 h-3" /> Incident History
               </CardTitle>
@@ -286,12 +293,15 @@ export function Dashboard() {
                 {incidents?.map((inc) => (
                   <div key={inc.id} className="text-[10px] p-2 border-b border-border/50 flex flex-col gap-1 hover:bg-background/30 transition-colors">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-destructive truncate">{inc.id}</span>
+                      <span className="font-bold text-destructive truncate">{inc.id.slice(0, 8)}…</span>
                       <span className="text-muted-foreground">{new Date(inc.startTime).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground opacity-80">Threat Reached: <span className="font-bold text-primary">{inc.threatStateReached}</span></span>
-                      <span className="text-muted-foreground opacity-80">Peak Risk: <span className="font-bold text-destructive">{inc.peakRiskScore}</span></span>
+                      <span className="text-muted-foreground">State: <span className="font-bold text-primary">{inc.threatStateReached}</span></span>
+                      <span className="text-muted-foreground">Peak: <span className="font-bold text-destructive">{inc.peakRiskScore}</span></span>
+                      <Badge variant={inc.resolved ? "outline" : "destructive"} className="text-[8px] h-4 px-1">
+                        {inc.resolved ? "RESOLVED" : "ACTIVE"}
+                      </Badge>
                     </div>
                   </div>
                 ))}
@@ -303,7 +313,8 @@ export function Dashboard() {
 
         {/* Right Column */}
         <div className="col-span-3 flex flex-col gap-4 overflow-y-auto pr-1">
-          
+
+          {/* Circuit Breakers */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
             <CardHeader className="pb-2 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
@@ -314,8 +325,8 @@ export function Dashboard() {
               {breakersData?.breakers.map(breaker => (
                 <div key={breaker.name} className="flex items-center justify-between p-2 border border-border rounded bg-background/50">
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider">{breaker.name.replace('_', ' ')}</div>
-                    <div className={`text-[9px] uppercase tracking-widest ${breaker.status === 'TRIPPED' ? 'text-destructive animate-pulse font-bold' : 'text-green-500'}`}>
+                    <div className="text-[10px] font-bold uppercase tracking-wider">{breaker.label ?? breaker.name.replace(/_/g, ' ')}</div>
+                    <div className={`text-[9px] uppercase tracking-widest font-bold ${breaker.status === 'TRIPPED' ? 'text-destructive animate-pulse' : breaker.status === 'RESET' ? 'text-yellow-500' : 'text-green-500'}`}>
                       {breaker.status}
                     </div>
                   </div>
@@ -333,43 +344,59 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
+          {/* Deception Assets */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
             <CardHeader className="pb-2 pt-3 px-4">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <Cpu className="w-3 h-3" /> Deception Assets
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1.5 px-4 pb-4 max-h-[150px] overflow-y-auto">
-              {assets?.map(asset => (
+            <CardContent className="space-y-1.5 px-4 pb-4 max-h-[140px] overflow-y-auto">
+              {assets?.length ? assets.map(asset => (
                 <div key={asset.id} className="text-[10px] flex items-center justify-between p-1.5 border border-border/50 rounded bg-background/30">
-                  <span className="truncate flex-1 font-mono opacity-80">{asset.path}</span>
+                  <span className="truncate flex-1 font-mono opacity-80">{asset.path.split('/').pop()}</span>
                   {asset.triggered ? (
-                    <Badge variant="destructive" className="ml-2 text-[9px] px-1 py-0 h-4">TRIGGERED</Badge>
+                    <Badge variant="destructive" className="ml-2 text-[9px] px-1 py-0 h-4 animate-pulse">TRIGGERED</Badge>
                   ) : (
                     <Badge variant="outline" className="ml-2 border-primary/50 text-primary bg-primary/5 text-[9px] px-1 py-0 h-4">ACTIVE</Badge>
                   )}
                 </div>
-              ))}
+              )) : (
+                <div className="text-[10px] text-muted-foreground text-center py-2">No deception assets deployed</div>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="border-border bg-card/50 backdrop-blur flex-1 flex flex-col min-h-0">
+          {/* Forensic Snapshots */}
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
             <CardHeader className="pb-2 pt-3 px-4 shrink-0">
               <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
                 <Camera className="w-3 h-3" /> Forensic Snapshots
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1 px-4 pb-4 overflow-y-auto">
+            <CardContent className="space-y-1 px-4 pb-4 max-h-[120px] overflow-y-auto">
               {snapshots?.map(snap => (
                 <div key={snap.id} className="flex flex-col p-1.5 border-b border-border/50 bg-background/20">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[9px] text-muted-foreground">{new Date(snap.timestamp).toLocaleTimeString()}</span>
                     <span className="text-[10px] font-bold text-destructive">Risk: {snap.triggerRiskScore}</span>
                   </div>
-                  <span className="text-[9px] font-mono text-primary truncate">{snap.id}</span>
+                  <span className="text-[9px] font-mono text-primary truncate">{snap.id.slice(0, 16)}…</span>
                 </div>
               ))}
               {!snapshots?.length && <div className="text-[10px] text-muted-foreground text-center py-2">No snapshots</div>}
+            </CardContent>
+          </Card>
+
+          {/* Trust Graph */}
+          <Card className="border-border bg-card/50 backdrop-blur flex-1 flex flex-col min-h-0">
+            <CardHeader className="pb-2 pt-3 px-4 shrink-0">
+              <CardTitle className="text-xs text-muted-foreground uppercase flex items-center gap-2">
+                <GitBranch className="w-3 h-3" /> Trust Graph
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 overflow-auto flex-1">
+              <TrustGraphPanel />
             </CardContent>
           </Card>
 

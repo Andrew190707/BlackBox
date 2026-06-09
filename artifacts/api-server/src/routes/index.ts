@@ -9,6 +9,7 @@ import deceptionRouter from "./deception";
 import incidentsRouter from "./incidents";
 import simulateRouter from "./simulate";
 import governanceRouter from "./governance";
+import trustRouter from "./trust";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(deceptionRouter);
 router.use(incidentsRouter);
 router.use(simulateRouter);
 router.use(governanceRouter);
+router.use(trustRouter);
 
 export default router;

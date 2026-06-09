@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import {
   useMutation,
@@ -37,6 +37,8 @@ import type {
   SimulateResult,
   Snapshot,
   SnapshotSummary,
+  TrustEdge,
+  TrustGraph,
   UserTrust
 } from './api.schemas';
 
@@ -1628,4 +1630,151 @@ export function useListTrustScores<TData = Awaited<ReturnType<typeof listTrustSc
 
 
 
+
+export const getGetTrustGraphUrl = () => {
+
+
+
+
+  return `/api/trust/graph`
+}
+
+/**
+ * @summary Get full trust graph (nodes + edges)
+ */
+export const getTrustGraph = async ( options?: RequestInit): Promise<TrustGraph> => {
+
+  return customFetch<TrustGraph>(getGetTrustGraphUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTrustGraphQueryKey = () => {
+    return [
+    `/api/trust/graph`
+    ] as const;
+    }
+
+
+export const getGetTrustGraphQueryOptions = <TData = Awaited<ReturnType<typeof getTrustGraph>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustGraph>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTrustGraphQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrustGraph>>> = ({ signal }) => getTrustGraph({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTrustGraph>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTrustGraphQueryResult = NonNullable<Awaited<ReturnType<typeof getTrustGraph>>>
+export type GetTrustGraphQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get full trust graph (nodes + edges)
+ */
+
+export function useGetTrustGraph<TData = Awaited<ReturnType<typeof getTrustGraph>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustGraph>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTrustGraphQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSeverTrustEdgeUrl = (id: string,) => {
+
+
+
+
+  return `/api/trust/edges/${id}/sever`
+}
+
+/**
+ * @summary Sever a specific trust path
+ */
+export const severTrustEdge = async (id: string, options?: RequestInit): Promise<TrustEdge> => {
+
+  return customFetch<TrustEdge>(getSeverTrustEdgeUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSeverTrustEdgeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof severTrustEdge>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof severTrustEdge>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['severTrustEdge'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof severTrustEdge>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  severTrustEdge(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeverTrustEdgeMutationResult = NonNullable<Awaited<ReturnType<typeof severTrustEdge>>>
+
+    export type SeverTrustEdgeMutationError = ErrorType<void>
+
+    /**
+ * @summary Sever a specific trust path
+ */
+export const useSeverTrustEdge = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof severTrustEdge>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof severTrustEdge>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getSeverTrustEdgeMutationOptions(options));
+    }
 

@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
@@ -39,6 +39,7 @@ export interface RiskHistoryPoint {
 
 export interface BreakerState {
   name: string;
+  label?: string;
   status: string;
   /** @nullable */
   trippedAt?: string | null;
@@ -138,6 +139,35 @@ export interface UserTrust {
   user: string;
   score: number;
   lastActivity: string;
+}
+
+export interface TrustNode {
+  id: string;
+  type: string;
+  name: string;
+  trustScore: number;
+  /** @nullable */
+  classification?: string | null;
+  riskState: string;
+  /** @nullable */
+  createdAt?: string | null;
+}
+
+export interface TrustEdge {
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+  trustScore: number;
+  severed: boolean;
+  /** @nullable */
+  severedAt?: string | null;
+  /** @nullable */
+  createdAt?: string | null;
+}
+
+export interface TrustGraph {
+  nodes: TrustNode[];
+  edges: TrustEdge[];
 }
 
 export type ListEventsParams = {

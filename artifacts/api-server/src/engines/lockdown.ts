@@ -5,6 +5,8 @@ import { blackBoxState } from "./state";
 import { takeSnapshot } from "./snapshot";
 import { deployDeception } from "./deception";
 import { logEvent } from "./flightRecorder";
+import { executeIdentityReset } from "./identityReset";
+import { severAllCompromisedPaths } from "./trustGraph";
 import { logger } from "../lib/logger";
 import { v4 as uuidv4 } from "uuid";
 
@@ -40,7 +42,7 @@ export async function initiateLockdown(): Promise<void> {
   (async () => {
     try {
       blackBoxState.lockdown.phase = 1;
-      broadcast("LOCKDOWN_PHASE", { phase: 1, message: "Phase 1: Evidence preservation" });
+      broadcast("LOCKDOWN_PHASE", { phase: 1, message: "Phase 1: State preservation" });
       const snapshotId = await takeSnapshot(blackBoxState.riskScore);
       blackBoxState.lockdown.snapshotId = snapshotId;
       await logEvent({ eventType: "LOCKDOWN_PHASE1_COMPLETE", user: "system", source: "lockdown", riskDeltaOverride: 0 });
@@ -53,6 +55,7 @@ export async function initiateLockdown(): Promise<void> {
       Object.keys(blackBoxState.breakers).forEach((name) =>
         blackBoxState.tripBreaker(name, "Lockdown Phase 2")
       );
+      await severAllCompromisedPaths();
       broadcast("BREAKER_TRIPPED", { breakers: Object.values(blackBoxState.breakers) });
       await logEvent({ eventType: "LOCKDOWN_PHASE2_COMPLETE", user: "system", source: "lockdown", riskDeltaOverride: 0 });
       logger.info("Lockdown Phase 2 complete");
@@ -64,6 +67,14 @@ export async function initiateLockdown(): Promise<void> {
       await deployDeception();
       await logEvent({ eventType: "LOCKDOWN_PHASE3_COMPLETE", user: "system", source: "lockdown", riskDeltaOverride: 0 });
       logger.info("Lockdown Phase 3 complete");
+
+      await new Promise((r) => setTimeout(r, 1500));
+
+      blackBoxState.lockdown.phase = 4;
+      broadcast("LOCKDOWN_PHASE", { phase: 4, message: "Phase 4: Identity reset" });
+      await executeIdentityReset();
+      await logEvent({ eventType: "LOCKDOWN_PHASE4_COMPLETE", user: "system", source: "lockdown", riskDeltaOverride: 0 });
+      logger.info("Lockdown Phase 4 complete");
 
       broadcast("LOCKDOWN_COMPLETE", { lockdown: blackBoxState.lockdown });
     } catch (err) {

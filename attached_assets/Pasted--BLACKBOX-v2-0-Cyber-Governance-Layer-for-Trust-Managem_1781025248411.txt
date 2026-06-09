@@ -1,0 +1,783 @@
+# BLACKBOX v2.0
+
+## Cyber Governance Layer for Trust Management, Autonomous Containment, State Preservation and Deception-Based Defense
+
+Build a full-stack cybersecurity platform called **BlackBox**.
+
+BlackBox is NOT:
+
+* A SIEM
+* An EDR
+* A DLP
+* A SOAR
+
+Instead, BlackBox is a **Cyber Governance Layer** that continuously governs trust relationships between users, devices, applications, and critical assets.
+
+The purpose of BlackBox is to maintain organizational control before, during, and after a security incident.
+
+---
+
+# TECH STACK
+
+Backend:
+
+* Python 3.11
+* FastAPI
+* SQLAlchemy
+* SQLite
+
+Frontend:
+
+* React 18
+* Tailwind CSS
+* Vite
+
+Real-Time:
+
+* FastAPI WebSockets
+
+Monitoring:
+
+* watchdog
+* psutil
+
+Database:
+
+* SQLite
+
+Package Managers:
+
+* pip
+* npm
+
+Project Structure:
+
+* Monorepo
+* /backend
+* /frontend
+
+---
+
+# CORE PHILOSOPHY
+
+BlackBox follows five principles:
+
+1. Observe
+2. Govern
+3. Preserve
+4. Contain
+5. Recover
+
+BlackBox assumes every security control can eventually fail.
+
+Instead of focusing only on prevention, BlackBox maintains control during an active breach.
+
+---
+
+# CORE ARCHITECTURE
+
+Users
+↓
+Devices
+↓
+Applications
+↓
+BlackBox Governance Layer
+↓
+Critical Assets
+
+Every interaction must pass through BlackBox.
+
+---
+
+# PROJECT STRUCTURE
+
+blackbox/
+
+backend/
+
+main.py
+
+database.py
+
+models.py
+
+engines/
+
+governance.py
+
+classification.py
+
+trust_graph.py
+
+flight_recorder.py
+
+risk_engine.py
+
+circuit_breaker.py
+
+state_preservation.py
+
+lockdown.py
+
+identity_reset.py
+
+deception.py
+
+incident.py
+
+routers/
+
+events.py
+
+risk.py
+
+trust.py
+
+breakers.py
+
+snapshots.py
+
+deception.py
+
+incidents.py
+
+lockdown.py
+
+websocket.py
+
+frontend/
+
+src/
+
+App.jsx
+
+components/
+
+ThreatStateBar.jsx
+
+RiskScoreGauge.jsx
+
+TrustGraphPanel.jsx
+
+TrustScorePanel.jsx
+
+EventFeed.jsx
+
+CircuitBreakerPanel.jsx
+
+LockdownPanel.jsx
+
+SnapshotViewer.jsx
+
+DeceptionAssets.jsx
+
+IncidentTimeline.jsx
+
+hooks/
+
+useWebSocket.js
+
+README.md
+
+---
+
+# GOVERNANCE ENGINE
+
+Purpose:
+
+* Policy Enforcement
+* Access Control
+* Trust Management
+
+Every request receives:
+
+ALLOW
+WARN
+BLOCK
+
+Maintain:
+
+User Trust Score
+
+Device Trust Score
+
+Application Trust Score
+
+Default:
+
+100
+
+Example:
+
+User accesses confidential asset
+
+↓
+
+Policy Check
+
+↓
+
+Trust Evaluation
+
+↓
+
+Decision
+
+---
+
+# ASSET CLASSIFICATION ENGINE
+
+Automatically classify assets.
+
+Classification Levels:
+
+PUBLIC
+INTERNAL
+CONFIDENTIAL
+CRITICAL
+
+Examples:
+
+Payroll.xlsx → CRITICAL
+
+CustomerDatabase.db → CRITICAL
+
+EmployeeHandbook.pdf → INTERNAL
+
+Asset classifications must affect:
+
+* Risk Score
+* Governance Decisions
+* Lockdown Decisions
+
+---
+
+# TRUST GRAPH ENGINE
+
+This is the primary innovation of BlackBox.
+
+Represent relationships between:
+
+User
+Device
+Application
+Asset
+
+Example:
+
+User
+↓
+Laptop
+↓
+Excel
+↓
+Payroll.xlsx
+
+Store trust paths in SQLite.
+
+Each trust path contains:
+
+* Trust Score
+* Last Activity
+* Risk State
+
+Trust paths can be individually severed.
+
+---
+
+# FLIGHT RECORDER ENGINE
+
+Acts as the aircraft black box.
+
+Monitor:
+
+FILE_ACCESS
+
+FILE_CREATE
+
+FILE_MODIFY
+
+FILE_DELETE
+
+PROCESS_CREATE
+
+LOGIN
+
+POLICY_VIOLATION
+
+Store:
+
+ID
+
+Timestamp
+
+User
+
+Source
+
+Event Type
+
+Details
+
+Risk Delta
+
+Threat State
+
+Every event must be logged.
+
+Broadcast events via WebSocket.
+
+Seed 50 realistic events at startup.
+
+---
+
+# RISK INTELLIGENCE ENGINE
+
+Use rule-based detection.
+
+Do NOT use machine learning in Version 1.
+
+Example Rules:
+
+IF file_access_count > 100
+
+THEN risk += 30
+
+IF unknown_device
+
+THEN risk += 20
+
+IF unusual_login_time
+
+THEN risk += 15
+
+IF policy_violation
+
+THEN risk += 20
+
+IF honeyfile_accessed
+
+THEN risk += 50
+
+Risk States:
+
+0-40 GREEN
+
+41-70 YELLOW
+
+71-90 ORANGE
+
+91-100 RED
+
+Expose:
+
+GET /risk
+
+Broadcast updates via WebSocket.
+
+---
+
+# CIRCUIT BREAKER ENGINE
+
+BlackBox does not shut down systems.
+
+BlackBox severs trust paths.
+
+Circuit Breakers:
+
+user_to_asset
+
+device_to_asset
+
+application_to_asset
+
+remote_access
+
+external_transfer
+
+States:
+
+CLOSED
+
+TRIPPED
+
+RESET
+
+Automatic Triggers:
+
+Risk > 70
+
+Trip external_transfer
+
+Risk > 85
+
+Trip remote_access
+
+Risk > 95
+
+Trip all breakers
+
+Manual trip and reset must be supported.
+
+Every action must be logged.
+
+---
+
+# STATE PRESERVATION ENGINE
+
+When critical risk is detected:
+
+Capture a forensic snapshot.
+
+Store:
+
+Running Processes
+
+Process Tree
+
+Memory Usage
+
+Network Connections
+
+Open Ports
+
+Recent File Activity
+
+Recent Policy Violations
+
+Active Users
+
+Trust Scores
+
+Threat State
+
+Timestamp
+
+Store snapshot as JSON in SQLite.
+
+This snapshot must occur BEFORE containment begins.
+
+---
+
+# BLACKBOX LOCKDOWN PROTOCOL
+
+Four Phases:
+
+Phase 1
+
+State Preservation
+
+Phase 2
+
+Trust Severance
+
+Phase 3
+
+Asset Protection
+
+Phase 4
+
+Identity Reset
+
+Each phase must be visible in real time.
+
+Broadcast progress over WebSocket.
+
+---
+
+# IDENTITY RESET PROTOCOL
+
+Simulate:
+
+Password Rotation
+
+API Key Rotation
+
+Token Revocation
+
+Session Revocation
+
+Access Key Reset
+
+Generate events:
+
+IDENTITY_RESET_STARTED
+
+IDENTITY_RESET_COMPLETED
+
+No real credentials should be modified.
+
+---
+
+# DECEPTION ENGINE
+
+Deploy deception assets during lockdown.
+
+Create:
+
+Payroll_2026.xlsx
+
+ExecutivePasswords.txt
+
+CryptoWalletBackup.txt
+
+AWS_AccessKeys.csv
+
+Store honeyfiles in watch directory.
+
+When accessed:
+
+Generate:
+
+HONEYFILE_TRIGGERED
+
+Increase Risk Score
+
+Trigger DECEPTION_ALERT
+
+Broadcast alert via WebSocket.
+
+---
+
+# INCIDENT RECONSTRUCTION ENGINE
+
+Generate:
+
+Incident Timeline
+
+Threat Summary
+
+Trust Paths Severed
+
+Lockdown Actions
+
+Honeyfiles Triggered
+
+Snapshot References
+
+Produce downloadable incident report.
+
+---
+
+# FRONTEND DASHBOARD
+
+Dark Theme.
+
+Components:
+
+Threat State Banner
+
+Risk Score Gauge
+
+Trust Score Panel
+
+Trust Graph Visualization
+
+Event Feed
+
+Circuit Breaker Panel
+
+Lockdown Panel
+
+Snapshot Viewer
+
+Deception Assets
+
+Incident Timeline
+
+Connection Status Indicator
+
+---
+
+# TRUST GRAPH VISUALIZATION
+
+Visualize:
+
+Users
+
+Devices
+
+Applications
+
+Assets
+
+Display:
+
+Trust Scores
+
+Active Paths
+
+Severed Paths
+
+Highlight compromised relationships.
+
+---
+
+# WEBSOCKET EVENTS
+
+Support:
+
+NEW_EVENT
+
+RISK_UPDATE
+
+TRUST_UPDATE
+
+BREAKER_TRIPPED
+
+BREAKER_RESET
+
+LOCKDOWN_PHASE
+
+DECEPTION_ALERT
+
+SNAPSHOT_CREATED
+
+INCIDENT_CREATED
+
+Auto reconnect on disconnect.
+
+---
+
+# DEMO ATTACK SCENARIO
+
+Add "Simulate Attack" button.
+
+Sequence:
+
+Generate normal activity
+
+↓
+
+Risk remains GREEN
+
+↓
+
+Generate mass file access
+
+↓
+
+Risk becomes YELLOW
+
+↓
+
+Generate unusual login event
+
+↓
+
+Risk becomes ORANGE
+
+↓
+
+Generate policy violations
+
+↓
+
+Risk becomes RED
+
+↓
+
+Circuit Breakers activate
+
+↓
+
+State Preservation begins
+
+↓
+
+Lockdown Protocol starts
+
+↓
+
+Identity Reset Protocol executes
+
+↓
+
+Honeyfiles deployed
+
+↓
+
+Honeyfile accessed
+
+↓
+
+Deception Alert triggered
+
+↓
+
+Incident Reconstruction generated
+
+↓
+
+Dashboard updates in real time
+
+All actions must occur with visible delays using asyncio.sleep.
+
+---
+
+# API ENDPOINTS
+
+GET /events
+
+GET /events/{id}
+
+GET /risk
+
+GET /trust
+
+GET /breakers
+
+POST /breakers/{name}/trip
+
+POST /breakers/{name}/reset
+
+POST /lockdown/initiate
+
+POST /lockdown/lift
+
+GET /snapshots
+
+GET /snapshots/{id}
+
+GET /deception/assets
+
+POST /deception/deploy
+
+GET /incidents
+
+GET /incidents/{id}
+
+GET /incidents/{id}/report
+
+POST /simulate/attack
+
+WS /ws
+
+---
+
+# IMPORTANT REQUIREMENTS
+
+Cross-platform support.
+
+Use pathlib and tempfile.
+
+Never touch system files.
+
+Only monitor designated watch directory.
+
+Circuit breakers must be simulated.
+
+No real credentials may be modified.
+
+No real network connections may be terminated.
+
+Seed historical data on startup.
+
+Configure CORS correctly.
+
+Implement graceful error handling.
+
+Provide README with architecture overview and demo instructions.
+
+The final result should feel like a prototype of a next-generation Cyber Governance Platform rather than a traditional cybersecurity dashboard.

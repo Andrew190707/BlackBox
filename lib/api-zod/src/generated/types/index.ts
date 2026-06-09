@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 
 export * from './breakerMap';
@@ -24,4 +24,7 @@ export * from './securityEvent';
 export * from './simulateResult';
 export * from './snapshot';
 export * from './snapshotSummary';
+export * from './trustEdge';
+export * from './trustGraph';
+export * from './trustNode';
 export * from './userTrust';

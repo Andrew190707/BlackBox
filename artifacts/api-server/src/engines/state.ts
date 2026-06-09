@@ -4,6 +4,7 @@ export type ThreatState = "GREEN" | "YELLOW" | "ORANGE" | "RED";
 
 export interface BreakerState {
   name: string;
+  label: string;
   status: "CLOSED" | "TRIPPED" | "RESET";
   trippedAt: string | null;
   reason: string | null;
@@ -23,7 +24,13 @@ export interface RiskHistoryPoint {
   threatState: ThreatState;
 }
 
-const BREAKER_NAMES = ["vpn", "database", "api_tokens", "uploads", "remote_sessions"] as const;
+const BREAKERS: Array<{ name: string; label: string }> = [
+  { name: "user_to_asset",        label: "User → Asset" },
+  { name: "device_to_asset",      label: "Device → Asset" },
+  { name: "application_to_asset", label: "App → Asset" },
+  { name: "remote_access",        label: "Remote Access" },
+  { name: "external_transfer",    label: "External Transfer" },
+];
 
 class BlackBoxState {
   riskScore = 20;
@@ -31,9 +38,9 @@ class BlackBoxState {
   riskHistory: RiskHistoryPoint[] = [];
 
   breakers: Record<string, BreakerState> = Object.fromEntries(
-    BREAKER_NAMES.map((name) => [
+    BREAKERS.map(({ name, label }) => [
       name,
-      { name, status: "CLOSED" as const, trippedAt: null, reason: null },
+      { name, label, status: "CLOSED" as const, trippedAt: null, reason: null },
     ])
   );
 
@@ -95,7 +102,7 @@ class BlackBoxState {
   tripBreaker(name: string, reason: string) {
     if (!this.breakers[name]) return false;
     this.breakers[name] = {
-      name,
+      ...this.breakers[name],
       status: "TRIPPED",
       trippedAt: new Date().toISOString(),
       reason,
@@ -106,7 +113,7 @@ class BlackBoxState {
   resetBreaker(name: string) {
     if (!this.breakers[name]) return false;
     this.breakers[name] = {
-      name,
+      ...this.breakers[name],
       status: "RESET",
       trippedAt: null,
       reason: null,
@@ -117,22 +124,24 @@ class BlackBoxState {
   autoTripBreakers(score: number) {
     const tripped: string[] = [];
     if (score > 70) {
-      ["uploads", "remote_sessions"].forEach((b) => {
-        if (this.breakers[b].status === "CLOSED") {
+      ["external_transfer"].forEach((b) => {
+        if (this.breakers[b]?.status === "CLOSED") {
           this.tripBreaker(b, `Auto-tripped at risk score ${score}`);
           tripped.push(b);
         }
       });
     }
-    if (score > 80) {
-      if (this.breakers["api_tokens"].status === "CLOSED") {
-        this.tripBreaker("api_tokens", `Auto-tripped at risk score ${score}`);
-        tripped.push("api_tokens");
-      }
+    if (score > 85) {
+      ["remote_access"].forEach((b) => {
+        if (this.breakers[b]?.status === "CLOSED") {
+          this.tripBreaker(b, `Auto-tripped at risk score ${score}`);
+          tripped.push(b);
+        }
+      });
     }
-    if (score > 90) {
-      ["vpn", "database"].forEach((b) => {
-        if (this.breakers[b].status === "CLOSED") {
+    if (score > 95) {
+      ["user_to_asset", "device_to_asset", "application_to_asset"].forEach((b) => {
+        if (this.breakers[b]?.status === "CLOSED") {
           this.tripBreaker(b, `Auto-tripped at risk score ${score}`);
           tripped.push(b);
         }
@@ -146,9 +155,9 @@ class BlackBoxState {
     this.threatState = "GREEN";
     this.riskHistory = [];
     this.breakers = Object.fromEntries(
-      BREAKER_NAMES.map((name) => [
+      BREAKERS.map(({ name, label }) => [
         name,
-        { name, status: "CLOSED" as const, trippedAt: null, reason: null },
+        { name, label, status: "CLOSED" as const, trippedAt: null, reason: null },
       ])
     );
     this.lockdown = {

@@ -3,6 +3,7 @@ import { eventsTable, incidentsTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { logger } from "./lib/logger";
 import { v4 as uuidv4 } from "uuid";
+import { seedTrustGraph } from "./engines/trustGraph";
 
 const SEED_USERS = ["admin", "analyst", "hr_admin", "dev_lead", "ceo", "unknown_user"];
 const SEED_FILES = [
@@ -25,6 +26,8 @@ function hoursAgo(h: number): Date {
 }
 
 export async function seedData() {
+  await seedTrustGraph();
+
   const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(eventsTable);
   if (Number(count) > 0) {
     logger.info({ count }, "DB already seeded, skipping");
@@ -80,4 +83,5 @@ export async function seedData() {
   });
 
   logger.info("Seed complete: 50 events + 1 historical incident");
+  await seedTrustGraph();
 }
