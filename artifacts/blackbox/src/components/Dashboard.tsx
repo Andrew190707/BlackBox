@@ -33,6 +33,7 @@ import { UserTrustModal } from "@/components/modals/UserTrustModal";
 import { DeceptionAssetsModal } from "@/components/modals/DeceptionAssetsModal";
 import { ForensicSnapshotsModal } from "@/components/modals/ForensicSnapshotsModal";
 import { TrustGraphModal } from "@/components/modals/TrustGraphModal";
+import { AssetClassificationModal } from "@/components/modals/AssetClassificationModal";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -148,6 +149,7 @@ export function Dashboard() {
   const [deceptionModal, setDeceptionModal] = useState(false);
   const [snapshotModal,  setSnapshotModal]  = useState(false);
   const [graphModal,     setGraphModal]     = useState(false);
+  const [assetModal,     setAssetModal]     = useState(false);
 
   const threatColor =
     riskScore?.threatState === "RED"    ? "bg-threat-RED"    :
@@ -433,10 +435,10 @@ export function Dashboard() {
 
           {/* Asset Classification — clickable */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => setDeceptionModal(true)}>
+            onClick={() => setAssetModal(true)}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground">
-                <ClickableCardTitle icon={Database} onClick={() => setDeceptionModal(true)}>
+                <ClickableCardTitle icon={Database} onClick={() => setAssetModal(true)}>
                   Asset Classification Registry
                 </ClickableCardTitle>
               </CardTitle>
@@ -515,10 +517,11 @@ export function Dashboard() {
       </main>
 
       {/* ── Detail Modals ── */}
-      <UserTrustModal       open={trustModal}     onClose={() => setTrustModal(false)}     />
-      <DeceptionAssetsModal open={deceptionModal} onClose={() => setDeceptionModal(false)} />
-      <ForensicSnapshotsModal open={snapshotModal} onClose={() => setSnapshotModal(false)} />
-      <TrustGraphModal      open={graphModal}     onClose={() => setGraphModal(false)}     />
+      <UserTrustModal           open={trustModal}     onClose={() => setTrustModal(false)}     />
+      <DeceptionAssetsModal     open={deceptionModal} onClose={() => setDeceptionModal(false)} />
+      <ForensicSnapshotsModal   open={snapshotModal}  onClose={() => setSnapshotModal(false)}  />
+      <TrustGraphModal          open={graphModal}     onClose={() => setGraphModal(false)}     />
+      <AssetClassificationModal open={assetModal}     onClose={() => setAssetModal(false)}     />
     </div>
   );
 }
