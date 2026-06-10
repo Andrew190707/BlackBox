@@ -321,7 +321,7 @@ export function Dashboard() {
           </Card>
 
           {/* Live Event Feed */}
-          <Card className="flex-[2] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden">
+          <Card className="flex-[3] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
             <CardHeader className="pb-1 pt-2 px-3 shrink-0">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <Zap className="w-3 h-3" /> Live Governance Event Stream
