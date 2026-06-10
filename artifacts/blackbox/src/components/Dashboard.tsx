@@ -304,7 +304,7 @@ export function Dashboard() {
         </div>
 
         {/* ═══════════════ MIDDLE COLUMN ═══════════════ */}
-        <div className="col-span-6 flex flex-col gap-3 overflow-hidden">
+        <div className="col-span-6 flex flex-col gap-3 overflow-hidden min-h-0">
 
           {/* Governance Narrative */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
