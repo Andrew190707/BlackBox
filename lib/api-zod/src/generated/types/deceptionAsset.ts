@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 
 export interface DeceptionAsset {
@@ -14,4 +14,8 @@ export interface DeceptionAsset {
   triggered: boolean;
   /** @nullable */
   triggeredAt?: string | null;
+  /** @nullable */
+  triggeredBy?: string | null;
+  /** @nullable */
+  sourceDevice?: string | null;
 }

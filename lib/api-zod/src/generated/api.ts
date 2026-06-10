@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import * as zod from 'zod';
 
@@ -207,7 +207,9 @@ export const ListDeceptionAssetsResponseItem = zod.object({
   "path": zod.string(),
   "deployed": zod.boolean(),
   "triggered": zod.boolean(),
-  "triggeredAt": zod.string().nullish()
+  "triggeredAt": zod.string().nullish(),
+  "triggeredBy": zod.string().nullish(),
+  "sourceDevice": zod.string().nullish()
 })
 export const ListDeceptionAssetsResponse = zod.array(ListDeceptionAssetsResponseItem)
 
@@ -221,7 +223,9 @@ export const DeployDeceptionResponseItem = zod.object({
   "path": zod.string(),
   "deployed": zod.boolean(),
   "triggered": zod.boolean(),
-  "triggeredAt": zod.string().nullish()
+  "triggeredAt": zod.string().nullish(),
+  "triggeredBy": zod.string().nullish(),
+  "sourceDevice": zod.string().nullish()
 })
 export const DeployDeceptionResponse = zod.array(DeployDeceptionResponseItem)
 
@@ -346,6 +350,67 @@ export const SeverTrustEdgeResponse = zod.object({
   "severed": zod.boolean(),
   "severedAt": zod.string().nullish(),
   "createdAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Trust path analytics — active, compromised, severed counts + health %
+ */
+export const GetTrustAnalyticsResponse = zod.object({
+  "activePaths": zod.number(),
+  "compromisedPaths": zod.number(),
+  "severedPaths": zod.number(),
+  "trustHealthPercent": zod.number(),
+  "totalNodes": zod.number(),
+  "compromisedNodes": zod.number(),
+  "degradedNodes": zod.number()
+})
+
+
+/**
+ * @summary Computed environment-wide trust score
+ */
+export const GetTrustScoreResponse = zod.object({
+  "score": zod.number(),
+  "level": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Rule-based AI narrative summary of recent system activity
+ */
+export const GetNarrativeResponse = zod.object({
+  "summary": zod.string(),
+  "generatedAt": zod.string(),
+  "eventCount": zod.number()
+})
+
+
+/**
+ * @summary List assets with their classification labels
+ */
+export const ListClassifiedAssetsResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "type": zod.string(),
+  "classification": zod.string(),
+  "riskState": zod.string(),
+  "trustScore": zod.number()
+})
+export const ListClassifiedAssetsResponse = zod.array(ListClassifiedAssetsResponseItem)
+
+
+/**
+ * @summary Current Identity Reset Protocol status
+ */
+export const GetIdentityResetStatusResponse = zod.object({
+  "active": zod.boolean(),
+  "progressPercent": zod.number(),
+  "completedActions": zod.array(zod.string()),
+  "totalActions": zod.number(),
+  "lastRunAt": zod.string().nullable(),
+  "currentAction": zod.string().nullish()
 })
 
 

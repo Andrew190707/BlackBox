@@ -98,3 +98,49 @@ export async function resetTrustGraph(): Promise<void> {
   await seedTrustGraph();
   broadcast("TRUST_UPDATE", { type: "GRAPH_RESET" });
 }
+
+export async function getTrustAnalytics() {
+  const nodes = await db.select().from(trustNodesTable);
+  const edges = await db.select().from(trustEdgesTable);
+  const activePaths      = edges.filter((e) => !e.severed).length;
+  const severedPaths     = edges.filter((e) => e.severed).length;
+  const compromisedNodes = nodes.filter((n) => n.riskState === "COMPROMISED").length;
+  const degradedNodes    = nodes.filter((n) => n.riskState === "DEGRADED").length;
+  const compromisedPaths = edges.filter((e) => {
+    const from = nodes.find((n) => n.id === e.fromNodeId);
+    return !e.severed && from?.riskState === "COMPROMISED";
+  }).length;
+  const totalPaths = edges.length;
+  const trustHealthPercent = totalPaths > 0
+    ? Math.round(((activePaths - compromisedPaths) / totalPaths) * 100)
+    : 100;
+  return { activePaths, compromisedPaths, severedPaths, trustHealthPercent, totalNodes: nodes.length, compromisedNodes, degradedNodes };
+}
+
+export async function getComputedTrustScore(userTrustScores: Record<string, number>): Promise<{ score: number; level: string }> {
+  const nodes = await db.select().from(trustNodesTable);
+  const nodeAvg = nodes.length
+    ? nodes.reduce((s, n) => s + n.trustScore, 0) / nodes.length
+    : 100;
+  const userScores = Object.values(userTrustScores);
+  const userAvg = userScores.length
+    ? userScores.reduce((s, v) => s + v, 0) / userScores.length
+    : 100;
+  const score = Math.round((nodeAvg * 0.6 + userAvg * 0.4));
+  const level = score >= 70 ? "HEALTHY" : score >= 40 ? "DEGRADED" : "CRITICAL";
+  return { score, level };
+}
+
+export async function getClassifiedAssets() {
+  const nodes = await db.select().from(trustNodesTable);
+  return nodes
+    .filter((n) => n.type === "ASSET" && n.classification)
+    .map((n) => ({
+      id: n.id,
+      name: n.name,
+      type: n.type,
+      classification: n.classification!,
+      riskState: n.riskState,
+      trustScore: n.trustScore,
+    }));
+}

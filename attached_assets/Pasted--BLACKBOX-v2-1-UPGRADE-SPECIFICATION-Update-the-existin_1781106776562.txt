@@ -1,0 +1,493 @@
+# BLACKBOX v2.1 UPGRADE SPECIFICATION
+
+Update the existing BlackBox project with the following enhancements. Do NOT rebuild the project. Extend the current architecture and integrate the new functionality into the existing UI, backend, APIs, and WebSocket system.
+
+---
+
+# OBJECTIVE
+
+Transform BlackBox from a cybersecurity monitoring platform into a true Cyber Governance Platform.
+
+The system must focus on:
+
+* Trust Management
+* Asset Governance
+* Circuit Breaker Architecture
+* State Preservation
+* Identity Reset
+* Deception-Based Defense
+
+The dashboard should feel like a command center controlling the environment rather than merely observing it.
+
+---
+
+# FEATURE 1: TRUST PATH ANALYTICS
+
+Add a new Trust Analytics panel.
+
+Display:
+
+Active Trust Paths
+
+Compromised Trust Paths
+
+Severed Trust Paths
+
+Trust Health Percentage
+
+Example:
+
+Active Paths: 147
+
+Compromised Paths: 4
+
+Severed Paths: 2
+
+Trust Health: 92%
+
+Update in real-time through WebSockets.
+
+---
+
+# FEATURE 2: DUAL SCORING MODEL
+
+Replace the single risk score system.
+
+Implement:
+
+Threat Score
+
+Trust Score
+
+Threat Score
+
+Represents:
+
+* Threat Activity
+* Suspicious Events
+* Attacker Behavior
+
+Range:
+
+0-100
+
+Trust Score
+
+Represents:
+
+* Environment Trust
+* User Trust
+* Device Trust
+* Application Trust
+
+Range:
+
+0-100
+
+Display both gauges side-by-side.
+
+Example:
+
+Threat Score: 88
+
+Trust Score: 34
+
+Color rules:
+
+Threat Score
+
+Green
+Yellow
+Orange
+Red
+
+Trust Score
+
+100-70 = Healthy
+
+69-40 = Degraded
+
+39-0 = Critical
+
+---
+
+# FEATURE 3: ASSET CLASSIFICATION PANEL
+
+Create a new dashboard component:
+
+AssetClassificationPanel.jsx
+
+Display assets and classifications.
+
+Supported labels:
+
+PUBLIC
+
+INTERNAL
+
+CONFIDENTIAL
+
+CRITICAL
+
+Example:
+
+Payroll.xlsx
+CRITICAL
+
+CustomerDB.db
+CRITICAL
+
+EmployeeGuide.pdf
+INTERNAL
+
+Color-code classifications.
+
+Assets must influence governance decisions.
+
+---
+
+# FEATURE 4: TRUST GRAPH ENHANCEMENT
+
+Upgrade the Trust Graph visualization.
+
+Nodes:
+
+Users
+
+Devices
+
+Applications
+
+Assets
+
+Edges:
+
+Trust Relationships
+
+Display:
+
+Trust Score
+
+Last Activity
+
+Current Status
+
+Statuses:
+
+ACTIVE
+
+COMPROMISED
+
+SEVERED
+
+Use colors:
+
+Green = Active
+
+Orange = Compromised
+
+Red = Severed
+
+Add edge animations.
+
+When a breaker trips, the graph should visibly sever the connection.
+
+---
+
+# FEATURE 5: STATE PRESERVATION DASHBOARD
+
+Add a dedicated State Preservation section.
+
+When a snapshot is created display:
+
+Snapshot ID
+
+Threat Score
+
+Timestamp
+
+Running Processes
+
+Process Count
+
+Memory Usage
+
+Open Ports
+
+Active Connections
+
+Active Users
+
+Trust Scores
+
+Recent Policy Violations
+
+Create a Snapshot Viewer page.
+
+Allow viewing previous snapshots.
+
+---
+
+# FEATURE 6: IDENTITY RESET PROTOCOL
+
+Create:
+
+identity_reset.py
+
+This becomes a major component of BlackBox.
+
+Actions:
+
+Session Revocation
+
+Token Revocation
+
+API Key Rotation
+
+Password Rotation
+
+Access Key Reset
+
+These actions are simulated only.
+
+Generate events:
+
+IDENTITY_RESET_STARTED
+
+IDENTITY_RESET_COMPLETED
+
+IDENTITY_RESET_FAILED
+
+Add a dedicated dashboard card showing:
+
+Current Identity Reset Status
+
+Progress Percentage
+
+Completed Actions
+
+---
+
+# FEATURE 7: BLACKBOX COMMAND CENTER
+
+Create a top-level command center panel.
+
+Display:
+
+Threat State
+
+Threat Score
+
+Trust Score
+
+Lockdown Status
+
+Identity Reset Status
+
+Circuit Breaker Status
+
+Snapshot Status
+
+Deception Status
+
+This should become the central control view.
+
+---
+
+# FEATURE 8: ENHANCED CIRCUIT BREAKERS
+
+Current breakers are too generic.
+
+Replace with:
+
+user_to_asset
+
+device_to_asset
+
+application_to_asset
+
+remote_access
+
+external_transfer
+
+Display:
+
+Status
+
+Reason
+
+Trip Time
+
+Affected Assets
+
+Affected Users
+
+When tripped:
+
+Visually sever trust paths in the graph.
+
+---
+
+# FEATURE 9: HONEYFILE INTELLIGENCE
+
+Upgrade deception module.
+
+When honeyfiles are triggered:
+
+Display:
+
+Honeyfile Name
+
+Triggered By
+
+Timestamp
+
+Associated User
+
+Associated Device
+
+Threat Impact
+
+Generate:
+
+DECEPTION_INTELLIGENCE event
+
+Store all deception activity.
+
+---
+
+# FEATURE 10: INCIDENT COMMAND TIMELINE
+
+Upgrade incident reconstruction.
+
+Include:
+
+Threat Escalation
+
+Trust Reduction
+
+Circuit Breaker Trips
+
+Snapshot Creation
+
+Identity Reset Actions
+
+Honeyfile Triggers
+
+Lockdown Phases
+
+Display as an interactive timeline.
+
+Allow filtering by event type.
+
+---
+
+# FEATURE 11: EXECUTIVE DASHBOARD METRICS
+
+Add a top-level metrics row.
+
+Display:
+
+Total Assets
+
+Critical Assets
+
+Active Users
+
+Threat Score
+
+Trust Score
+
+Open Incidents
+
+Severed Trust Paths
+
+Honeyfile Triggers
+
+Updated live through WebSockets.
+
+---
+
+# FEATURE 12: VISUAL STATUS SYSTEM
+
+Implement status badges:
+
+ACTIVE
+
+MONITORED
+
+COMPROMISED
+
+CONTAINED
+
+SEVERED
+
+LOCKED_DOWN
+
+RECOVERING
+
+Use consistent colors throughout the application.
+
+---
+
+# FEATURE 13: BLACKBOX NARRATIVE MODE
+
+Add an AI-generated event summary panel.
+
+Example:
+
+"BlackBox detected abnormal file access activity originating from Analyst01. Trust Score decreased from 92 to 47. External transfer trust path was severed. State Preservation initiated. Identity Reset Protocol completed successfully. Honeyfile Payroll_2026.xlsx was triggered during containment."
+
+Generate summaries automatically from system events.
+
+No external AI APIs required.
+
+Use rule-based summary generation.
+
+---
+
+# FEATURE 14: CYBER GOVERNANCE IDENTITY
+
+Update all UI text.
+
+Avoid terms:
+
+Monitoring Tool
+
+Security Dashboard
+
+Log Viewer
+
+Replace with:
+
+Cyber Governance Layer
+
+Trust Graph
+
+Trust Paths
+
+Circuit Breakers
+
+State Preservation
+
+Identity Reset
+
+Governance Actions
+
+The product should feel like a next-generation governance platform.
+
+---
+
+# FINAL REQUIREMENT
+
+The user experience should communicate:
+
+BlackBox does not simply detect attacks.
+
+BlackBox governs trust relationships, preserves system state, severs trust paths, initiates identity recovery, deploys deception mechanisms, and maintains control of the environment throughout the entire incident lifecycle.
+
+Every new feature must integrate into existing APIs, WebSocket updates, database models, and dashboard workflows.
+
+Do not remove existing functionality.
+
+Only extend and enhance the current platform.

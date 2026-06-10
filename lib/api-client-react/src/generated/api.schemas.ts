@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 export interface HealthStatus {
   status: string;
@@ -90,6 +90,10 @@ export interface DeceptionAsset {
   triggered: boolean;
   /** @nullable */
   triggeredAt?: string | null;
+  /** @nullable */
+  triggeredBy?: string | null;
+  /** @nullable */
+  sourceDevice?: string | null;
 }
 
 export interface IncidentSummary {
@@ -168,6 +172,61 @@ export interface TrustEdge {
 export interface TrustGraph {
   nodes: TrustNode[];
   edges: TrustEdge[];
+}
+
+export interface TrustAnalytics {
+  activePaths: number;
+  compromisedPaths: number;
+  severedPaths: number;
+  trustHealthPercent: number;
+  totalNodes: number;
+  compromisedNodes: number;
+  degradedNodes: number;
+}
+
+export interface TrustScore {
+  score: number;
+  level: string;
+  updatedAt: string;
+}
+
+export interface NarrativeSummary {
+  summary: string;
+  generatedAt: string;
+  eventCount: number;
+}
+
+export interface ClassifiedAsset {
+  id: string;
+  name: string;
+  type: string;
+  classification: string;
+  riskState: string;
+  trustScore: number;
+}
+
+export interface IdentityResetStatus {
+  active: boolean;
+  progressPercent: number;
+  completedActions: string[];
+  totalActions: number;
+  /** @nullable */
+  lastRunAt: string | null;
+  /** @nullable */
+  currentAction?: string | null;
+}
+
+export interface CommandCenterStatus {
+  threatScore: number;
+  trustScore: number;
+  threatState?: string;
+  lockdownActive: boolean;
+  lockdownPhase?: number;
+  identityResetActive: boolean;
+  breakersTripped: number;
+  snapshotCount: number;
+  deceptionTriggered: number;
+  openIncidents?: number;
 }
 
 export type ListEventsParams = {

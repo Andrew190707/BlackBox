@@ -3,28 +3,34 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 
 export * from './breakerMap';
 export * from './breakerState';
 export * from './breakerTripInput';
+export * from './classifiedAsset';
+export * from './commandCenterStatus';
 export * from './deceptionAsset';
 export * from './eventList';
 export * from './governancePolicy';
 export * from './healthStatus';
+export * from './identityResetStatus';
 export * from './incidentReport';
 export * from './incidentSummary';
 export * from './incidentTimelineEntry';
 export * from './listEventsParams';
 export * from './lockdownState';
+export * from './narrativeSummary';
 export * from './riskHistoryPoint';
 export * from './riskState';
 export * from './securityEvent';
 export * from './simulateResult';
 export * from './snapshot';
 export * from './snapshotSummary';
+export * from './trustAnalytics';
 export * from './trustEdge';
 export * from './trustGraph';
 export * from './trustNode';
+export * from './trustScore';
 export * from './userTrust';

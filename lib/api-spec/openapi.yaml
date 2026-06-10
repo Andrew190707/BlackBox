@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.2.0
+  version: 0.3.0
   description: BlackBox Cyber Governance API
 servers:
   - url: /api
@@ -400,6 +400,73 @@ paths:
         "404":
           description: Not found
 
+  /trust/analytics:
+    get:
+      operationId: getTrustAnalytics
+      tags: [trust]
+      summary: Trust path analytics — active, compromised, severed counts + health %
+      responses:
+        "200":
+          description: Trust analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustAnalytics"
+
+  /trust/score:
+    get:
+      operationId: getTrustScore
+      tags: [trust]
+      summary: Computed environment-wide trust score
+      responses:
+        "200":
+          description: Trust score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustScore"
+
+  /narrative:
+    get:
+      operationId: getNarrative
+      tags: [events]
+      summary: Rule-based AI narrative summary of recent system activity
+      responses:
+        "200":
+          description: Narrative summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrativeSummary"
+
+  /assets/classified:
+    get:
+      operationId: listClassifiedAssets
+      tags: [trust]
+      summary: List assets with their classification labels
+      responses:
+        "200":
+          description: Classified asset list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClassifiedAsset"
+
+  /identity/status:
+    get:
+      operationId: getIdentityResetStatus
+      tags: [lockdown]
+      summary: Current Identity Reset Protocol status
+      responses:
+        "200":
+          description: Identity reset status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentityResetStatus"
+
 components:
   schemas:
     HealthStatus:
@@ -507,12 +574,14 @@ components:
       type: object
       required: [id, type, path, deployed, triggered]
       properties:
-        id:         { type: string }
-        type:       { type: string }
-        path:       { type: string }
-        deployed:   { type: boolean }
-        triggered:  { type: boolean }
+        id:          { type: string }
+        type:        { type: string }
+        path:        { type: string }
+        deployed:    { type: boolean }
+        triggered:   { type: boolean }
         triggeredAt: { type: ["string", "null"] }
+        triggeredBy: { type: ["string", "null"] }
+        sourceDevice: { type: ["string", "null"] }
 
     IncidentSummary:
       type: object
@@ -617,3 +686,70 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TrustEdge"
+
+    TrustAnalytics:
+      type: object
+      required: [activePaths, compromisedPaths, severedPaths, trustHealthPercent, totalNodes, compromisedNodes, degradedNodes]
+      properties:
+        activePaths:        { type: integer }
+        compromisedPaths:   { type: integer }
+        severedPaths:       { type: integer }
+        trustHealthPercent: { type: number }
+        totalNodes:         { type: integer }
+        compromisedNodes:   { type: integer }
+        degradedNodes:      { type: integer }
+
+    TrustScore:
+      type: object
+      required: [score, level, updatedAt]
+      properties:
+        score:     { type: number }
+        level:     { type: string }
+        updatedAt: { type: string }
+
+    NarrativeSummary:
+      type: object
+      required: [summary, generatedAt, eventCount]
+      properties:
+        summary:      { type: string }
+        generatedAt:  { type: string }
+        eventCount:   { type: integer }
+
+    ClassifiedAsset:
+      type: object
+      required: [id, name, type, classification, riskState, trustScore]
+      properties:
+        id:             { type: string }
+        name:           { type: string }
+        type:           { type: string }
+        classification: { type: string }
+        riskState:      { type: string }
+        trustScore:     { type: number }
+
+    IdentityResetStatus:
+      type: object
+      required: [active, progressPercent, completedActions, totalActions, lastRunAt]
+      properties:
+        active:           { type: boolean }
+        progressPercent:  { type: number }
+        completedActions:
+          type: array
+          items: { type: string }
+        totalActions:     { type: integer }
+        lastRunAt:        { type: ["string", "null"] }
+        currentAction:    { type: ["string", "null"] }
+
+    CommandCenterStatus:
+      type: object
+      required: [threatScore, trustScore, lockdownActive, identityResetActive, breakersTripped, snapshotCount, deceptionTriggered]
+      properties:
+        threatScore:          { type: number }
+        trustScore:           { type: number }
+        threatState:          { type: string }
+        lockdownActive:       { type: boolean }
+        lockdownPhase:        { type: integer }
+        identityResetActive:  { type: boolean }
+        breakersTripped:      { type: integer }
+        snapshotCount:        { type: integer }
+        deceptionTriggered:   { type: integer }
+        openIncidents:        { type: integer }

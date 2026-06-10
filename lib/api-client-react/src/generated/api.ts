@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * BlackBox Cyber Governance API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import {
   useMutation,
@@ -23,22 +23,27 @@ import type {
   BreakerMap,
   BreakerState,
   BreakerTripInput,
+  ClassifiedAsset,
   DeceptionAsset,
   EventList,
   GovernancePolicy,
   HealthStatus,
+  IdentityResetStatus,
   IncidentReport,
   IncidentSummary,
   ListEventsParams,
   LockdownState,
+  NarrativeSummary,
   RiskHistoryPoint,
   RiskState,
   SecurityEvent,
   SimulateResult,
   Snapshot,
   SnapshotSummary,
+  TrustAnalytics,
   TrustEdge,
   TrustGraph,
+  TrustScore,
   UserTrust
 } from './api.schemas';
 
@@ -1777,4 +1782,389 @@ export const useSeverTrustEdge = <TError = ErrorType<void>,
       > => {
       return useMutation(getSeverTrustEdgeMutationOptions(options));
     }
+
+export const getGetTrustAnalyticsUrl = () => {
+
+
+
+
+  return `/api/trust/analytics`
+}
+
+/**
+ * @summary Trust path analytics — active, compromised, severed counts + health %
+ */
+export const getTrustAnalytics = async ( options?: RequestInit): Promise<TrustAnalytics> => {
+
+  return customFetch<TrustAnalytics>(getGetTrustAnalyticsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTrustAnalyticsQueryKey = () => {
+    return [
+    `/api/trust/analytics`
+    ] as const;
+    }
+
+
+export const getGetTrustAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getTrustAnalytics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTrustAnalyticsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrustAnalytics>>> = ({ signal }) => getTrustAnalytics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTrustAnalytics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTrustAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getTrustAnalytics>>>
+export type GetTrustAnalyticsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Trust path analytics — active, compromised, severed counts + health %
+ */
+
+export function useGetTrustAnalytics<TData = Awaited<ReturnType<typeof getTrustAnalytics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTrustAnalyticsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTrustScoreUrl = () => {
+
+
+
+
+  return `/api/trust/score`
+}
+
+/**
+ * @summary Computed environment-wide trust score
+ */
+export const getTrustScore = async ( options?: RequestInit): Promise<TrustScore> => {
+
+  return customFetch<TrustScore>(getGetTrustScoreUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTrustScoreQueryKey = () => {
+    return [
+    `/api/trust/score`
+    ] as const;
+    }
+
+
+export const getGetTrustScoreQueryOptions = <TData = Awaited<ReturnType<typeof getTrustScore>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustScore>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTrustScoreQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrustScore>>> = ({ signal }) => getTrustScore({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTrustScore>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTrustScoreQueryResult = NonNullable<Awaited<ReturnType<typeof getTrustScore>>>
+export type GetTrustScoreQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Computed environment-wide trust score
+ */
+
+export function useGetTrustScore<TData = Awaited<ReturnType<typeof getTrustScore>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTrustScore>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTrustScoreQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetNarrativeUrl = () => {
+
+
+
+
+  return `/api/narrative`
+}
+
+/**
+ * @summary Rule-based AI narrative summary of recent system activity
+ */
+export const getNarrative = async ( options?: RequestInit): Promise<NarrativeSummary> => {
+
+  return customFetch<NarrativeSummary>(getGetNarrativeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNarrativeQueryKey = () => {
+    return [
+    `/api/narrative`
+    ] as const;
+    }
+
+
+export const getGetNarrativeQueryOptions = <TData = Awaited<ReturnType<typeof getNarrative>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNarrative>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNarrativeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNarrative>>> = ({ signal }) => getNarrative({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNarrative>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNarrativeQueryResult = NonNullable<Awaited<ReturnType<typeof getNarrative>>>
+export type GetNarrativeQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Rule-based AI narrative summary of recent system activity
+ */
+
+export function useGetNarrative<TData = Awaited<ReturnType<typeof getNarrative>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNarrative>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNarrativeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListClassifiedAssetsUrl = () => {
+
+
+
+
+  return `/api/assets/classified`
+}
+
+/**
+ * @summary List assets with their classification labels
+ */
+export const listClassifiedAssets = async ( options?: RequestInit): Promise<ClassifiedAsset[]> => {
+
+  return customFetch<ClassifiedAsset[]>(getListClassifiedAssetsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClassifiedAssetsQueryKey = () => {
+    return [
+    `/api/assets/classified`
+    ] as const;
+    }
+
+
+export const getListClassifiedAssetsQueryOptions = <TData = Awaited<ReturnType<typeof listClassifiedAssets>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClassifiedAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClassifiedAssetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClassifiedAssets>>> = ({ signal }) => listClassifiedAssets({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClassifiedAssets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListClassifiedAssetsQueryResult = NonNullable<Awaited<ReturnType<typeof listClassifiedAssets>>>
+export type ListClassifiedAssetsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List assets with their classification labels
+ */
+
+export function useListClassifiedAssets<TData = Awaited<ReturnType<typeof listClassifiedAssets>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClassifiedAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListClassifiedAssetsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetIdentityResetStatusUrl = () => {
+
+
+
+
+  return `/api/identity/status`
+}
+
+/**
+ * @summary Current Identity Reset Protocol status
+ */
+export const getIdentityResetStatus = async ( options?: RequestInit): Promise<IdentityResetStatus> => {
+
+  return customFetch<IdentityResetStatus>(getGetIdentityResetStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIdentityResetStatusQueryKey = () => {
+    return [
+    `/api/identity/status`
+    ] as const;
+    }
+
+
+export const getGetIdentityResetStatusQueryOptions = <TData = Awaited<ReturnType<typeof getIdentityResetStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIdentityResetStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIdentityResetStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIdentityResetStatus>>> = ({ signal }) => getIdentityResetStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIdentityResetStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIdentityResetStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getIdentityResetStatus>>>
+export type GetIdentityResetStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Current Identity Reset Protocol status
+ */
+
+export function useGetIdentityResetStatus<TData = Awaited<ReturnType<typeof getIdentityResetStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIdentityResetStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIdentityResetStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

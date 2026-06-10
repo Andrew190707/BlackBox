@@ -10,6 +10,8 @@ import incidentsRouter from "./incidents";
 import simulateRouter from "./simulate";
 import governanceRouter from "./governance";
 import trustRouter from "./trust";
+import narrativeRouter from "./narrative";
+import identityRouter from "./identity";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(incidentsRouter);
 router.use(simulateRouter);
 router.use(governanceRouter);
 router.use(trustRouter);
+router.use(narrativeRouter);
+router.use(identityRouter);
 
 export default router;
