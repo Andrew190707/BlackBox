@@ -186,7 +186,7 @@ export function Dashboard() {
       <ExecutiveMetricsBar />
 
       {/* ── Main Grid ── */}
-      <main className="flex-1 p-3 grid grid-cols-12 gap-3 overflow-hidden" style={{ height: "calc(100vh - 8.5rem)" }}>
+      <main className="flex-1 p-3 grid grid-cols-12 grid-rows-1 gap-3 overflow-hidden" style={{ height: "calc(100vh - 8.5rem)" }}>
 
         {/* ═══════════════ LEFT COLUMN ═══════════════ */}
         <div className="col-span-3 flex flex-col gap-3 overflow-y-auto pr-0.5">
@@ -304,7 +304,7 @@ export function Dashboard() {
         </div>
 
         {/* ═══════════════ MIDDLE COLUMN ═══════════════ */}
-        <div className="col-span-6 flex flex-col gap-3 overflow-hidden min-h-0">
+        <div className="col-span-6 flex flex-col gap-3 overflow-hidden min-h-0" style={{ height: "calc(100vh - 8.5rem - 1.5rem)" }}>
 
           {/* Governance Narrative */}
           <Card className="border-border bg-card/50 backdrop-blur shrink-0">
@@ -320,59 +320,64 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Live Event Feed */}
-          <Card className="flex-[3] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
-            <CardHeader className="pb-1 pt-2 px-3 shrink-0">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-                <Zap className="w-3 h-3" /> Live Governance Event Stream
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-0 pb-2">
-              <div className="space-y-px px-3 font-mono">
-                {eventsData?.events.map((evt) => (
-                  <div key={evt.id}
-                    className={`text-[9px] p-1 border-l-2 flex items-start gap-2 transition-colors ${EVENT_CLASS(evt)}`}>
-                    <span className="text-muted-foreground tabular-nums shrink-0 w-14">{new Date(evt.timestamp).toLocaleTimeString([], { hour12: false })}</span>
-                    <span className={`font-bold shrink-0 w-32 truncate ${evt.threatState === "RED" || evt.eventType.includes("LOCKDOWN") ? "text-destructive" : evt.threatState === "ORANGE" ? "text-yellow-500" : "text-primary"}`}>{evt.eventType}</span>
-                    <span className="text-muted-foreground shrink-0 w-16 truncate">{evt.user}</span>
-                    <span className="flex-1 truncate opacity-80">{evt.details}</span>
-                    {evt.riskDelta > 0 && <span className="text-destructive font-bold ml-auto tabular-nums">+{evt.riskDelta}</span>}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Event Feed + Incident Timeline — sub-container owns the remaining height */}
+          <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
 
-          {/* Incident Command Timeline */}
-          <Card className="flex-[1] flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden">
-            <CardHeader className="pb-1 pt-2 px-3 shrink-0">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-                <History className="w-3 h-3" /> Incident Command Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-0 pb-2">
-              <div className="space-y-px px-3 font-mono">
-                {incidents?.map((inc) => (
-                  <div key={inc.id} className="text-[9px] p-1.5 border-b border-border/50 flex flex-col gap-0.5 hover:bg-background/30 transition-colors">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-destructive truncate">{inc.id.slice(0, 8)}…</span>
-                      <span className="text-muted-foreground">{new Date(inc.startTime).toLocaleString()}</span>
+            {/* Live Event Feed */}
+            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
+              <CardHeader className="pb-1 pt-2 px-3 shrink-0">
+                <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+                  <Zap className="w-3 h-3" /> Live Governance Event Stream
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto p-0 pb-2 min-h-0">
+                <div className="space-y-px px-3 font-mono">
+                  {eventsData?.events.map((evt) => (
+                    <div key={evt.id}
+                      className={`text-[9px] p-1 border-l-2 flex items-start gap-2 transition-colors ${EVENT_CLASS(evt)}`}>
+                      <span className="text-muted-foreground tabular-nums shrink-0 w-14">{new Date(evt.timestamp).toLocaleTimeString([], { hour12: false })}</span>
+                      <span className={`font-bold shrink-0 w-32 truncate ${evt.threatState === "RED" || evt.eventType.includes("LOCKDOWN") ? "text-destructive" : evt.threatState === "ORANGE" ? "text-yellow-500" : "text-primary"}`}>{evt.eventType}</span>
+                      <span className="text-muted-foreground shrink-0 w-16 truncate">{evt.user}</span>
+                      <span className="flex-1 truncate opacity-80">{evt.details}</span>
+                      {evt.riskDelta > 0 && <span className="text-destructive font-bold ml-auto tabular-nums">+{evt.riskDelta}</span>}
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Peak state: <span className="font-bold text-primary">{inc.threatStateReached}</span></span>
-                      <span className="text-muted-foreground">Risk: <span className="font-bold text-destructive">{inc.peakRiskScore}</span></span>
-                      <Badge variant={inc.resolved ? "outline" : "destructive"} className="text-[7px] h-3.5 px-1">
-                        {inc.resolved ? "RESOLVED" : "ACTIVE"}
-                      </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Incident Command Timeline */}
+            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
+              <CardHeader className="pb-1 pt-2 px-3 shrink-0">
+                <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+                  <History className="w-3 h-3" /> Incident Command Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto p-0 pb-2 min-h-0">
+                <div className="space-y-px px-3 font-mono">
+                  {incidents?.map((inc) => (
+                    <div key={inc.id} className="text-[9px] p-1.5 border-b border-border/50 flex flex-col gap-0.5 hover:bg-background/30 transition-colors">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-destructive truncate">{inc.id.slice(0, 8)}…</span>
+                        <span className="text-muted-foreground">{new Date(inc.startTime).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Peak state: <span className="font-bold text-primary">{inc.threatStateReached}</span></span>
+                        <span className="text-muted-foreground">Risk: <span className="font-bold text-destructive">{inc.peakRiskScore}</span></span>
+                        <Badge variant={inc.resolved ? "outline" : "destructive"} className="text-[7px] h-3.5 px-1">
+                          {inc.resolved ? "RESOLVED" : "ACTIVE"}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {!incidents?.length && (
-                  <div className="text-[9px] text-muted-foreground text-center py-3">No governance incidents recorded</div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                  {!incidents?.length && (
+                    <div className="text-[9px] text-muted-foreground text-center py-3">No governance incidents recorded</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
 
         </div>
 
