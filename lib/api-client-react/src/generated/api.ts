@@ -37,6 +37,7 @@ import type {
   RiskHistoryPoint,
   RiskState,
   SecurityEvent,
+  SimulateAttackInput,
   SimulateResult,
   Snapshot,
   SnapshotSummary,
@@ -44,6 +45,7 @@ import type {
   TrustEdge,
   TrustGraph,
   TrustScore,
+  User,
   UserTrust
 } from './api.schemas';
 
@@ -1342,6 +1344,83 @@ export function useGetIncidentReport<TData = Awaited<ReturnType<typeof getIncide
 
 
 
+export const getListUsersUrl = () => {
+
+
+
+
+  return `/api/users`
+}
+
+/**
+ * @summary List all system users with attacker profile data
+ */
+export const listUsers = async ( options?: RequestInit): Promise<User[]> => {
+
+  return customFetch<User[]>(getListUsersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListUsersQueryKey = () => {
+    return [
+    `/api/users`
+    ] as const;
+    }
+
+
+export const getListUsersQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUsersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUsers>>> = ({ signal }) => listUsers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>
+export type ListUsersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all system users with attacker profile data
+ */
+
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getSimulateAttackUrl = () => {
 
 
@@ -1353,14 +1432,15 @@ export const getSimulateAttackUrl = () => {
 /**
  * @summary Trigger demo attack sequence
  */
-export const simulateAttack = async ( options?: RequestInit): Promise<SimulateResult> => {
+export const simulateAttack = async (simulateAttackInput: SimulateAttackInput, options?: RequestInit): Promise<SimulateResult> => {
 
   return customFetch<SimulateResult>(getSimulateAttackUrl(),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      simulateAttackInput,)
   }
 );}
 
@@ -1368,8 +1448,8 @@ export const simulateAttack = async ( options?: RequestInit): Promise<SimulateRe
 
 
 export const getSimulateAttackMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,void, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,{data: BodyType<SimulateAttackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,{data: BodyType<SimulateAttackInput>}, TContext> => {
 
 const mutationKey = ['simulateAttack'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -1381,10 +1461,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateAttack>>, void> = () => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateAttack>>, {data: BodyType<SimulateAttackInput>}> = (props) => {
+          const {data} = props ?? {};
 
-
-          return  simulateAttack(requestOptions)
+          return  simulateAttack(data,requestOptions)
         }
 
 
@@ -1395,18 +1475,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SimulateAttackMutationResult = NonNullable<Awaited<ReturnType<typeof simulateAttack>>>
-
+    export type SimulateAttackMutationBody = BodyType<SimulateAttackInput>
     export type SimulateAttackMutationError = ErrorType<unknown>
 
     /**
  * @summary Trigger demo attack sequence
  */
 export const useSimulateAttack = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateAttack>>, TError,{data: BodyType<SimulateAttackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof simulateAttack>>,
         TError,
-        void,
+        {data: BodyType<SimulateAttackInput>},
         TContext
       > => {
       return useMutation(getSimulateAttackMutationOptions(options));

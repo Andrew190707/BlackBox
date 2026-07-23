@@ -19,7 +19,7 @@ export function AssetClassificationPanel() {
   const { data: assets } = useListClassifiedAssets();
 
   const sorted = [...(assets ?? [])].sort((a, b) => {
-    const order = { CRITICAL: 0, CONFIDENTIAL: 1, INTERNAL: 2, PUBLIC: 3 };
+    const order: Record<string, number> = { CRITICAL: 0, CONFIDENTIAL: 1, INTERNAL: 2, PUBLIC: 3 };
     return (order[a.classification] ?? 4) - (order[b.classification] ?? 4);
   });
 

@@ -15,12 +15,14 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export async function runAttackSimulation() {
+export async function runAttackSimulation(attacker?: string) {
   if (blackBoxState.simulationRunning) {
     return { success: false, message: "Simulation already running" };
   }
 
+  const attackerName = attacker ?? "unknown_user";
   blackBoxState.reset();
+  blackBoxState.currentAttacker = attackerName;
   await resetTrustGraph();
   blackBoxState.simulationRunning = true;
   const incidentId = uuidv4();
@@ -49,7 +51,7 @@ export async function runAttackSimulation() {
 
   (async () => {
     try {
-      addTimeline("Attack simulation initiated", "medium");
+      addTimeline(`Attack simulation initiated — attacker: ${attackerName}`, "medium");
 
       // Phase 1: Normal baseline
       for (let i = 0; i < 5; i++) {
@@ -69,33 +71,33 @@ export async function runAttackSimulation() {
       for (let i = 0; i < 200; i++) {
         await logEvent({
           eventType: "FILE_ACCESS",
-          user: "unknown_user",
+          user: attackerName,
           source: randomFile(),
-          details: { bulk: true, volume: "high" },
+          details: { bulk: true, volume: "high", attacker: true },
           riskDeltaOverride: 0.22,
         });
         if (i % 25 === 0) await sleep(250);
       }
-      addTimeline("Mass file access — 200 FILE_ACCESS events detected — risk YELLOW", "high");
+      addTimeline(`Mass file access — 200 FILE_ACCESS events by ${attackerName} — risk YELLOW`, "high");
       await sleep(1500);
 
       // Phase 3: Suspicious login — ORANGE
       await logEvent({
         eventType: "LOGIN",
-        user: "unknown_user",
+        user: attackerName,
         source: "192.168.99.200",
-        details: { location: "Unknown", hour: 3, suspicious: true },
+        details: { location: "Unknown", hour: 3, suspicious: true, attacker: true },
         riskDeltaOverride: 18,
       });
-      addTimeline("LOGIN at 03:00 from unknown location — risk spikes ORANGE", "high");
+      addTimeline(`LOGIN by ${attackerName} at 03:00 from unknown location — risk spikes ORANGE`, "high");
       await sleep(1000);
 
       // External transfer auto-trip
       await logEvent({
         eventType: "FILE_ACCESS",
-        user: "unknown_user",
+        user: attackerName,
         source: "/etc/shadow",
-        details: { sensitive: true },
+        details: { sensitive: true, attacker: true },
         riskDeltaOverride: 6,
       });
       broadcast("RISK_UPDATE", {
@@ -108,9 +110,9 @@ export async function runAttackSimulation() {
 
       await logEvent({
         eventType: "FILE_ACCESS",
-        user: "attacker",
+        user: attackerName,
         source: "/var/data/customer_db.sql",
-        details: { data_exfil: true },
+        details: { data_exfil: true, attacker: true },
         riskDeltaOverride: 4,
       });
       broadcast("RISK_UPDATE", {
@@ -124,9 +126,9 @@ export async function runAttackSimulation() {
       // Push to RED and trigger full lockdown
       await logEvent({
         eventType: "FILE_ACCESS",
-        user: "attacker",
+        user: attackerName,
         source: "/home/admin/.ssh/id_rsa",
-        details: { data_exfil: true, ssh_key: true },
+        details: { data_exfil: true, ssh_key: true, attacker: true },
         riskDeltaOverride: 5,
       });
       addTimeline("Risk hits RED — ALL breakers trip — Lockdown Protocol initiates", "high");
@@ -166,9 +168,9 @@ export async function runAttackSimulation() {
       // Honeyfile triggered
       await logEvent({
         eventType: "HONEYFILE_TRIGGERED",
-        user: "attacker",
+        user: attackerName,
         source: "/tmp/blackbox_watch/Payroll_2026.xlsx",
-        details: { honeyfile: "Payroll_2026.xlsx", attackerIp: "192.168.99.200" },
+        details: { honeyfile: "Payroll_2026.xlsx", attackerIp: "192.168.99.200", attacker: true },
         riskDeltaOverride: 0,
       });
       await db
@@ -177,10 +179,10 @@ export async function runAttackSimulation() {
         .where(eq(deceptionAssetsTable.path, "/tmp/blackbox_watch/Payroll_2026.xlsx"));
       broadcast("DECEPTION_TRIGGERED", {
         asset: "Payroll_2026.xlsx",
-        attacker: "unknown_user",
-        message: "HONEYFILE ACCESSED — attacker identity confirmed",
+        attacker: attackerName,
+        message: `HONEYFILE ACCESSED — ${attackerName} identity confirmed`,
       });
-      addTimeline("DECEPTION TRIGGERED — attacker accessed Payroll_2026.xlsx", "high");
+      addTimeline(`DECEPTION TRIGGERED — ${attackerName} accessed Payroll_2026.xlsx`, "high");
       await sleep(1000);
 
       // Lockdown Phase 4: Identity reset
@@ -207,7 +209,7 @@ export async function runAttackSimulation() {
           deceptionTriggered: true,
           honeyfilesAccessed: JSON.stringify(["Payroll_2026.xlsx"]),
           snapshotId: snapshotId,
-          summary: `Automated attack simulation: mass file exfiltration detected, 3AM login anomaly, risk reached ${Math.round(peakScore)}/100 (${threatReached}). All circuit breakers tripped. Trust paths severed. Honeyfile Payroll_2026.xlsx accessed by attacker at 192.168.99.200. Identity reset complete. Full forensic snapshot captured.`,
+          summary: `Automated attack simulation: mass file exfiltration by ${attackerName} detected, 3AM login anomaly, risk reached ${Math.round(peakScore)}/100 (${threatReached}). All circuit breakers tripped. Trust paths severed. Honeyfile Payroll_2026.xlsx accessed by ${attackerName} at 192.168.99.200. Identity reset complete. Full forensic snapshot captured.`,
           resolved: true,
         })
         .where(eq(incidentsTable.id, incidentId));
@@ -220,5 +222,5 @@ export async function runAttackSimulation() {
     }
   })();
 
-  return { success: true, message: "Attack simulation started — watch the dashboard for real-time updates" };
+  return { success: true, message: `Attack simulation started — attacker: ${attackerName}`, attacker: attackerName };
 }

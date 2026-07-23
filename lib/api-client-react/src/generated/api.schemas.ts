@@ -131,6 +131,32 @@ export interface IncidentReport {
 export interface SimulateResult {
   success: boolean;
   message: string;
+  /** @nullable */
+  attacker?: string | null;
+}
+
+export interface SimulateAttackInput {
+  /** Username of the selected attacker to simulate */
+  attacker: string;
+}
+
+export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
+
+
+export const UserStatus = {
+  Online: 'Online',
+  Offline: 'Offline',
+} as const;
+
+export interface User {
+  id: string;
+  name: string;
+  empId: string;
+  department: string;
+  status: UserStatus;
+  riskScore: number;
+  trustScore: number;
+  avatar: string;
 }
 
 export interface GovernancePolicy {

@@ -65,6 +65,7 @@ class BlackBoxState {
 
   simulationRunning = false;
   currentIncidentId: string | null = null;
+  currentAttacker: string | null = null;
 
   updateRiskScore(delta: number) {
     this.riskScore = Math.max(0, Math.min(100, this.riskScore + delta));
@@ -179,6 +180,7 @@ class BlackBoxState {
     };
     this.simulationRunning = false;
     this.currentIncidentId = null;
+    this.currentAttacker = null;
   }
 }
 

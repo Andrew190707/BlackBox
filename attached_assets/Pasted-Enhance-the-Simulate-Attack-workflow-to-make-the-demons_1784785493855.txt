@@ -1,0 +1,73 @@
+Enhance the "Simulate Attack" workflow to make the demonstration more realistic and interactive.
+
+Current Behavior:
+- Clicking the "Simulate" button immediately starts the attack simulation.
+
+New Required Behavior:
+1. When the user clicks the "Simulate" button, DO NOT start the simulation immediately.
+2. Instead, display a modern modal popup centered on the screen with a dark glassmorphism design that matches the BlackBox UI.
+3. The popup title should be:
+   "Select the Attacker"
+
+4. Below the title, display all available users in the system as selectable cards (or a searchable dropdown if there are many users).
+
+Each user card should display:
+- User Avatar
+- User Name
+- Employee ID
+- Department
+- Current Status (Online/Offline)
+- Risk Score (optional)
+
+Example:
+
+------------------------------------------------
+ Select the Attacker
+
+ ○ John Smith
+   EMP-1023
+   Finance
+   Online
+
+ ○ Sarah Johnson
+   EMP-1008
+   HR
+   Online
+
+ ○ David Lee
+   EMP-1041
+   Engineering
+   Offline
+
+[Cancel]          [Start Simulation]
+------------------------------------------------
+
+Requirements:
+- Only one user can be selected at a time.
+- Highlight the selected user with a glowing blue border.
+- Disable the "Start Simulation" button until a user has been selected.
+- Clicking Cancel closes the popup without making any changes.
+
+When "Start Simulation" is clicked:
+
+1. Close the popup.
+2. Begin the attack simulation using ONLY the selected user.
+3. Treat this user as the attacker throughout the simulation.
+4. Display notifications such as:
+   "Attack simulation started."
+   "Attacker: John Smith (EMP-1023)"
+
+During the simulation:
+- Every event in the activity timeline should reference the selected attacker.
+- The Network Graph should highlight only the selected user node in red.
+- The AI Behavior Analysis panel should analyze the selected user's actions.
+- Threat level, incident logs, honeynet, and all attack events should be generated based on the selected attacker.
+- Display the attacker's name consistently across the dashboard wherever attacker information is shown.
+
+Additional UX:
+- Animate the popup with a smooth fade and scale effect.
+- Dim the background while the popup is open.
+- Support keyboard navigation (Esc closes the modal, Enter starts the simulation if a user is selected).
+- Remember the last selected attacker during the current session to allow quick re-selection.
+
+The overall experience should feel like a professional enterprise cybersecurity platform, similar to Microsoft Defender XDR or CrowdStrike Falcon, with smooth animations and polished interactions.

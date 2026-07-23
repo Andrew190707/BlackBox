@@ -1,0 +1,540 @@
+# BLACKBOX UI/UX REDESIGN SPECIFICATION
+
+## Objective
+
+Redesign the BlackBox interface so it feels like a professional Cyber Governance Platform rather than a cybersecurity student project dashboard.
+
+The current implementation contains all required functionality, but the visual hierarchy, layout structure, and component prioritization do not emphasize the unique innovation of BlackBox.
+
+The redesign should make BlackBox feel like:
+
+"An Operating System for Cyber Governance"
+
+instead of:
+
+"A collection of cybersecurity widgets."
+
+Do not remove existing functionality.
+
+Only improve presentation, hierarchy, layout, and user experience.
+
+---
+
+# PRIMARY DESIGN PHILOSOPHY
+
+Current Experience:
+
+"Look at all these features."
+
+Target Experience:
+
+"Look at the Trust Graph. Everything else supports it."
+
+The Trust Graph is BlackBox's primary innovation and must become the centerpiece of the platform.
+
+The interface should visually communicate:
+
+Trust Relationships
+
+↓
+
+Governance Decisions
+
+↓
+
+Circuit Breakers
+
+↓
+
+Containment
+
+↓
+
+Recovery
+
+---
+
+# LAYOUT REDESIGN
+
+Replace the current widget-heavy layout.
+
+New Layout Structure:
+
+TOP 20%
+
+Threat State Banner
+
+Threat Score
+
+Trust Score
+
+Trust Health
+
+Active Trust Paths
+
+Compromised Trust Paths
+
+Severed Trust Paths
+
+---
+
+MIDDLE 50%
+
+Large Interactive Trust Graph
+
+This must become the dominant visual element.
+
+The Trust Graph should occupy the majority of screen space.
+
+Everything else becomes supporting information.
+
+---
+
+BOTTOM 30%
+
+Governance Narrative
+
+Event Stream
+
+Circuit Breakers
+
+Identity Reset
+
+Asset Classification
+
+Snapshot Status
+
+Incident Timeline
+
+---
+
+# TRUST GRAPH REDESIGN
+
+This is the most important component.
+
+Requirements:
+
+Nodes:
+
+Users
+
+Devices
+
+Applications
+
+Assets
+
+Connections:
+
+Trust Relationships
+
+Each edge must display:
+
+Trust Score
+
+Status
+
+Last Activity
+
+States:
+
+ACTIVE
+
+COMPROMISED
+
+SEVERED
+
+Color Scheme:
+
+ACTIVE = Green
+
+COMPROMISED = Amber
+
+SEVERED = Red
+
+Add subtle animations:
+
+Data Flow Animation
+
+Trust Pulse Animation
+
+Connection Activity Animation
+
+When a breaker trips:
+
+The edge must visibly disconnect.
+
+Example:
+
+User
+│
+▼
+Asset
+
+becomes
+
+User ✕ Asset
+
+with an animated severance effect.
+
+This should be visually memorable.
+
+---
+
+# REMOVE DASHBOARD CLUTTER
+
+Current problem:
+
+Too many boxed widgets.
+
+The UI feels fragmented.
+
+Reduce:
+
+Heavy borders
+
+Nested cards
+
+Over-segmentation
+
+Increase:
+
+Whitespace
+
+Hierarchy
+
+Grouping
+
+Visual breathing room
+
+The interface should feel spacious.
+
+---
+
+# COLOR SYSTEM REDESIGN
+
+Current color palette feels overly cyberpunk.
+
+Reduce dependence on:
+
+Bright Cyan
+
+Neon Colors
+
+Use:
+
+Dark Slate Backgrounds
+
+Muted Gray Panels
+
+Green
+
+Amber
+
+Red
+
+Use cyan only as an accent color.
+
+The application should resemble enterprise platforms used by:
+
+SOC Teams
+
+Threat Intelligence Teams
+
+Cyber Command Centers
+
+---
+
+# THREAT & TRUST SCORE REDESIGN
+
+Replace circular gauges.
+
+Current gauges feel outdated.
+
+Replace with:
+
+Horizontal Professional Indicators
+
+Example:
+
+Threat Score
+
+88/100
+
+████████░░
+
+Trust Score
+
+34/100
+
+███░░░░░░░
+
+Use smooth animations.
+
+Display:
+
+Current Value
+
+Change Since Last Minute
+
+Trend Direction
+
+---
+
+# GOVERNANCE NARRATIVE EXPANSION
+
+Make Governance Narrative a primary feature.
+
+Increase width.
+
+Increase height.
+
+Make it highly visible.
+
+Purpose:
+
+Explain incidents in human language.
+
+Example:
+
+"BlackBox detected abnormal file access activity from Analyst01. Trust Score decreased from 92 to 47. External Transfer trust path was severed. State Preservation initiated. Identity Reset Protocol completed. Honeyfile Payroll_2026.xlsx was triggered."
+
+Users understand stories faster than logs.
+
+The Governance Narrative should become the executive-friendly view.
+
+---
+
+# EVENT FEED REDESIGN
+
+Event Feed becomes secondary.
+
+Reduce visual prominence.
+
+Keep functionality.
+
+Place below the Governance Narrative.
+
+The event feed supports the story.
+
+It should not dominate the interface.
+
+---
+
+# COMMAND CENTER HEADER
+
+Create a dedicated Cyber Governance Header.
+
+Display:
+
+Threat State
+
+Threat Score
+
+Trust Score
+
+Trust Health
+
+Lockdown Status
+
+Identity Reset Status
+
+Snapshot Status
+
+Deception Status
+
+Active Trust Paths
+
+The user should understand the entire system state within 3 seconds.
+
+---
+
+# EXECUTIVE METRICS ROW
+
+Create a clean metrics row.
+
+Display:
+
+Total Assets
+
+Critical Assets
+
+Active Users
+
+Open Incidents
+
+Trust Health
+
+Threat Score
+
+Severed Paths
+
+Honeyfile Triggers
+
+Avoid excessive borders.
+
+Use modern KPI cards.
+
+---
+
+# ASSET CLASSIFICATION REDESIGN
+
+Assets should display classification badges.
+
+Labels:
+
+PUBLIC
+
+INTERNAL
+
+CONFIDENTIAL
+
+CRITICAL
+
+Use clear color coding.
+
+Show counts by category.
+
+Display:
+
+Critical Assets
+
+Confidential Assets
+
+Internal Assets
+
+Public Assets
+
+---
+
+# STATE PRESERVATION VISUALIZATION
+
+Add a dedicated State Preservation card.
+
+Display:
+
+Snapshot ID
+
+Processes Captured
+
+Memory Usage
+
+Network Connections
+
+Open Ports
+
+Users Captured
+
+Timestamp
+
+Threat Score at Capture
+
+Make snapshots feel important.
+
+They are core to the BlackBox identity.
+
+---
+
+# CIRCUIT BREAKER VISUALIZATION
+
+Current breaker cards should be improved.
+
+Display:
+
+Status
+
+Reason
+
+Affected Trust Paths
+
+Affected Assets
+
+Affected Users
+
+Trip Time
+
+When breakers activate:
+
+Highlight affected trust graph paths.
+
+Show direct relationship between:
+
+Breaker Activation
+
+↓
+
+Trust Path Severance
+
+---
+
+# ANIMATIONS
+
+Add subtle enterprise-grade animations.
+
+Examples:
+
+Trust Path Pulses
+
+Threat Escalation Glow
+
+Breaker Trip Animation
+
+Trust Path Severance Animation
+
+Identity Reset Progress Animation
+
+Snapshot Creation Animation
+
+Avoid flashy effects.
+
+Animations should communicate system state.
+
+---
+
+# PRODUCT IDENTITY
+
+Update all UI language.
+
+Avoid:
+
+Security Dashboard
+
+Monitoring System
+
+Log Viewer
+
+Replace with:
+
+Cyber Governance Layer
+
+Trust Graph
+
+Trust Paths
+
+Circuit Breakers
+
+State Preservation
+
+Identity Reset
+
+Governance Actions
+
+Containment Actions
+
+The platform must consistently present itself as a Cyber Governance Operating System.
+
+---
+
+# FINAL GOAL
+
+When someone sees BlackBox for the first time, they should immediately think:
+
+"This is not another cybersecurity dashboard."
+
+Instead they should think:
+
+"This is a platform that governs trust relationships across an entire digital environment."
+
+The Trust Graph must become the centerpiece.
+
+Everything else exists to explain, support, and control the Trust Graph.

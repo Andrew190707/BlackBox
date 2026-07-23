@@ -34,6 +34,7 @@ import { DeceptionAssetsModal } from "@/components/modals/DeceptionAssetsModal";
 import { ForensicSnapshotsModal } from "@/components/modals/ForensicSnapshotsModal";
 import { TrustGraphModal } from "@/components/modals/TrustGraphModal";
 import { AssetClassificationModal } from "@/components/modals/AssetClassificationModal";
+import { AttackerSelectModal } from "@/components/modals/AttackerSelectModal";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,10 +120,24 @@ export function Dashboard() {
   const simulateReset    = useSimulateReset();
 
   const handleSimulate = () => {
-    simulateAttack.mutate(undefined, {
-      onSuccess: () => toast({ title: "Simulation initiated" }),
-      onError:   () => toast({ title: "Simulation failed", variant: "destructive" }),
-    });
+    setAttackerModal(true);
+  };
+
+  const handleStartSimulation = (attacker: string) => {
+    setAttackerModal(false);
+    setLastAttacker(attacker);
+    simulateAttack.mutate(
+      { data: { attacker } },
+      {
+        onSuccess: (res) => {
+          toast({
+            title: "Attack simulation started",
+            description: `Attacker: ${attacker}`,
+          });
+        },
+        onError: () => toast({ title: "Simulation failed", variant: "destructive" }),
+      }
+    );
   };
 
   const handleReset = () => {
@@ -150,6 +165,8 @@ export function Dashboard() {
   const [snapshotModal,  setSnapshotModal]  = useState(false);
   const [graphModal,     setGraphModal]     = useState(false);
   const [assetModal,     setAssetModal]     = useState(false);
+  const [attackerModal,  setAttackerModal]  = useState(false);
+  const [lastAttacker,   setLastAttacker]   = useState<string | null>(null);
 
   const threatColor =
     riskScore?.threatState === "RED"    ? "bg-threat-RED"    :
@@ -527,6 +544,12 @@ export function Dashboard() {
       <ForensicSnapshotsModal   open={snapshotModal}  onClose={() => setSnapshotModal(false)}  />
       <TrustGraphModal          open={graphModal}     onClose={() => setGraphModal(false)}     />
       <AssetClassificationModal open={assetModal}     onClose={() => setAssetModal(false)}     />
+      <AttackerSelectModal
+        open={attackerModal}
+        onClose={() => setAttackerModal(false)}
+        onStart={handleStartSimulation}
+        lastSelected={lastAttacker}
+      />
     </div>
   );
 }

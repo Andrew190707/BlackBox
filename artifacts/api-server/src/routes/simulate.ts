@@ -7,8 +7,9 @@ import { broadcast } from "../engines/websocket";
 
 const router = Router();
 
-router.post("/simulate/attack", async (_req, res) => {
-  const result = await runAttackSimulation();
+router.post("/simulate/attack", async (req, res) => {
+  const attacker = req.body?.attacker as string | undefined;
+  const result = await runAttackSimulation(attacker);
   res.json(result);
 });
 

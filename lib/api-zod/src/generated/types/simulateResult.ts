@@ -9,4 +9,6 @@
 export interface SimulateResult {
   success: boolean;
   message: string;
+  /** @nullable */
+  attacker?: string | null;
 }

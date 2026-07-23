@@ -271,11 +271,32 @@ export const GetIncidentReportResponse = zod.object({
 
 
 /**
+ * @summary List all system users with attacker profile data
+ */
+export const ListUsersResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "empId": zod.string(),
+  "department": zod.string(),
+  "status": zod.enum(['Online', 'Offline']),
+  "riskScore": zod.number(),
+  "trustScore": zod.number(),
+  "avatar": zod.string()
+})
+export const ListUsersResponse = zod.array(ListUsersResponseItem)
+
+
+/**
  * @summary Trigger demo attack sequence
  */
+export const SimulateAttackBody = zod.object({
+  "attacker": zod.string().describe('Username of the selected attacker to simulate')
+})
+
 export const SimulateAttackResponse = zod.object({
   "success": zod.boolean(),
-  "message": zod.string()
+  "message": zod.string(),
+  "attacker": zod.string().nullish()
 })
 
 
@@ -284,7 +305,8 @@ export const SimulateAttackResponse = zod.object({
  */
 export const SimulateResetResponse = zod.object({
   "success": zod.boolean(),
-  "message": zod.string()
+  "message": zod.string(),
+  "attacker": zod.string().nullish()
 })
 
 
