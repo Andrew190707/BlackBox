@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useListUsers } from "@workspace/api-client-react";
-import { Loader2, User, CircleDot, Zap } from "lucide-react";
+import { Loader2, CircleDot, Zap } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -36,7 +36,7 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-w-lg w-full border border-primary/30 bg-black/80 backdrop-blur-xl shadow-[0_0_60px_rgba(0,255,136,0.15)] text-foreground p-0 overflow-hidden"
+        className="max-w-lg w-full border border-primary/30 bg-[#0a0a0a]/95 backdrop-blur-sm shadow-[0_0_60px_rgba(0,255,136,0.15)] text-foreground p-0 overflow-hidden"
       >
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-primary/10">
@@ -77,7 +77,7 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
                     className="w-9 h-9 rounded-full"
                   />
                   <span
-                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-black/80
+                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0a0a0a]
                       ${u.status === "Online" ? "bg-green-500" : "bg-red-500"}`}
                   />
                 </div>
@@ -98,11 +98,19 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
                   </div>
                 </div>
 
-                {/* Risk score */}
-                <div className="shrink-0 text-right">
-                  <div className="text-[8px] text-muted-foreground uppercase">Risk</div>
-                  <div className={`text-[11px] font-bold tabular-nums ${u.riskScore > 60 ? "text-red-400" : u.riskScore > 40 ? "text-yellow-400" : "text-green-400"}`}>
-                    {u.riskScore}
+                {/* Scores */}
+                <div className="shrink-0 flex gap-3 text-right">
+                  <div>
+                    <div className="text-[8px] text-muted-foreground uppercase">Risk</div>
+                    <div className={`text-[11px] font-bold tabular-nums ${u.riskScore > 60 ? "text-red-400" : u.riskScore > 40 ? "text-yellow-400" : "text-green-400"}`}>
+                      {u.riskScore}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[8px] text-muted-foreground uppercase">Trust</div>
+                    <div className={`text-[11px] font-bold tabular-nums ${u.trustScore > 80 ? "text-green-400" : u.trustScore > 50 ? "text-yellow-400" : "text-red-400"}`}>
+                      {u.trustScore}
+                    </div>
                   </div>
                 </div>
 
