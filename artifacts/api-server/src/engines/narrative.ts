@@ -28,7 +28,7 @@ export async function generateNarrative(): Promise<{ summary: string; generatedA
   const riskScore   = Math.round(state.riskScore);
 
   const threatSentence: Record<string, string> = {
-    GREEN:  `BlackBox reports nominal governance conditions — Threat Score ${riskScore}/100, all trust paths stable.`,
+    GREEN:  ` lac`,
     YELLOW: `BlackBox has elevated the threat condition to YELLOW — Threat Score ${riskScore}/100. Anomalous activity is being tracked.`,
     ORANGE: `BlackBox governance layer is operating in ORANGE condition — Threat Score ${riskScore}/100. Trust degradation detected.`,
     RED:    `BlackBox has declared a RED threat condition — Threat Score ${riskScore}/100. Active attack behavior in progress.`,
