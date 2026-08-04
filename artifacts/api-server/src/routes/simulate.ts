@@ -4,6 +4,8 @@ import { blackBoxState } from "../engines/state";
 import { db } from "@workspace/db";
 import { eventsTable, snapshotsTable, deceptionAssetsTable, incidentsTable } from "@workspace/db";
 import { broadcast } from "../engines/websocket";
+import { resetTrustGraph } from "../engines/trustGraph";
+import { resetFileAccessState } from "../engines/fileAccess";
 
 const router = Router();
 
@@ -16,6 +18,8 @@ router.post("/simulate/attack", async (req, res) => {
 
 router.post("/simulate/reset", async (_req, res) => {
   blackBoxState.reset();
+  await resetTrustGraph();
+  await resetFileAccessState();
 
   await db.delete(eventsTable);
   await db.delete(snapshotsTable);

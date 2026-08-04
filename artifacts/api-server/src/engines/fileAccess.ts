@@ -154,7 +154,7 @@ export async function seedFileAccessData() {
     ["dev_lead", 97, "NORMAL"],
     ["ceo", 99, "NORMAL"],
     ["cfo", 99, "NORMAL"],
-    ["unknown_user", 70, "DEGRADED"],
+    ["unknown_user", 70, "NORMAL"],
     ["attacker", 100, "NORMAL"],
   ] as const;
   for (const [name, trustScore, riskState] of seededUserProfiles) {
@@ -292,6 +292,18 @@ export async function getFileAccessPolicy() {
       criticalityCosts: CRITICALITY_COST,
     },
   };
+}
+
+export async function resetFileAccessState() {
+  threatMemory.clear();
+  await db.update(companyUserProfilesTable).set({ riskStatus: "TRUSTED" });
+  await db.update(fileUserContainmentsTable).set({
+    active: false,
+    reason: "No active containment",
+    severedConnections: "[]",
+    startedAt: null,
+    liftedAt: null,
+  });
 }
 
 async function severUserTrustPaths(userName: string) {
