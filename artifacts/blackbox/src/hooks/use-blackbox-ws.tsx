@@ -5,6 +5,10 @@ import {
   getListBreakersQueryKey, 
   getListEventsQueryKey, 
   getGetLockdownStateQueryKey,
+  getGetTrustScoreQueryKey,
+  getGetTrustAnalyticsQueryKey,
+  getListIncidentsQueryKey,
+  getListUsersQueryKey,
   SecurityEvent
 } from '@workspace/api-client-react';
 import { toast } from '@/hooks/use-toast';
@@ -13,14 +17,21 @@ export type WSStatus = 'connecting' | 'connected' | 'disconnected';
 
 interface WSContextType {
   status: WSStatus;
+  lastSimulation: {
+    attacker: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH';
+    trustBefore?: number;
+    trustAfter?: number;
+  } | null;
 }
 
-const WSContext = createContext<WSContextType>({ status: 'disconnected' });
+const WSContext = createContext<WSContextType>({ status: 'disconnected', lastSimulation: null });
 
 export const useBlackBoxWS = () => useContext(WSContext);
 
 export function WSProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<WSStatus>('disconnected');
+  const [lastSimulation, setLastSimulation] = useState<WSContextType['lastSimulation']>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient();
@@ -85,6 +96,28 @@ export function WSProvider({ children }: { children: ReactNode }) {
         case 'LOCKDOWN_PHASE':
           queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
           break;
+        case 'USER_TRUST_UPDATED':
+        case 'SIMULATION_COMPLETE':
+          if (msg.data?.attacker && msg.data?.severity) {
+            setLastSimulation({
+              attacker: msg.data.attacker,
+              severity: msg.data.severity,
+              trustBefore: msg.data.trustBefore,
+              trustAfter: msg.data.trustAfter,
+            });
+            toast({
+              title: `${msg.data.severity} simulation complete`,
+              description: `${msg.data.attacker} trust changed from ${Math.round(msg.data.trustBefore ?? 0)} to ${Math.round(msg.data.trustAfter ?? 0)}.`,
+              variant: msg.data.severity === 'HIGH' ? 'destructive' : 'default',
+            });
+          }
+          queryClient.invalidateQueries({ queryKey: getGetTrustScoreQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListIncidentsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListEventsQueryKey({ limit: 100 }) });
+          queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
+          break;
         case 'DECEPTION_TRIGGERED':
           toast({
             title: 'Deception Triggered!',
@@ -106,7 +139,7 @@ export function WSProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   return (
-    <WSContext.Provider value={{ status }}>
+    <WSContext.Provider value={{ status, lastSimulation }}>
       {children}
     </WSContext.Provider>
   );

@@ -89,7 +89,7 @@ const EVENT_CLASS = (evt: { eventType: string; threatState: string }) => {
 };
 
 export function Dashboard() {
-  const { status } = useBlackBoxWS();
+  const { status, lastSimulation } = useBlackBoxWS();
   const queryClient = useQueryClient();
 
   const { data: riskScore }    = useGetRiskScore({ query: { queryKey: getGetRiskScoreQueryKey() } });
@@ -277,6 +277,22 @@ export function Dashboard() {
                   <Lock className="w-3.5 h-3.5 mr-2" />
                   {confirmLockdown ? "CONFIRM LOCKDOWN" : "INITIATE LOCKDOWN"}
                 </Button>
+              )}
+              {lastSimulation && (
+                <div className="rounded border border-primary/30 bg-primary/5 px-2 py-1.5 text-[8px]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold uppercase tracking-wider text-primary">
+                      {lastSimulation.severity} simulation complete
+                    </span>
+                    <span className="text-muted-foreground">{lastSimulation.attacker}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-muted-foreground">
+                    <span>Attacker trust</span>
+                    <span className="font-bold text-foreground">
+                      {Math.round(lastSimulation.trustBefore ?? 0)} → {Math.round(lastSimulation.trustAfter ?? 0)}
+                    </span>
+                  </div>
+                </div>
               )}
               <div className="flex gap-2 pt-1">
                 <Button variant="secondary" className="flex-1 h-7 text-[9px]" onClick={handleSimulate} disabled={simulateAttack.isPending}>

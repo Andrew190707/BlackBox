@@ -9,13 +9,46 @@ import { executeIdentityReset } from "./identityReset";
 import { severAllCompromisedPaths, resetTrustGraph } from "./trustGraph";
 import { logger } from "../lib/logger";
 import { v4 as uuidv4 } from "uuid";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { trustNodesTable } from "@workspace/db";
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 export type SimulationSeverity = "LOW" | "MEDIUM" | "HIGH";
+
+const ATTACKER_TRUST_PENALTY: Record<SimulationSeverity, number> = {
+  LOW: 12,
+  MEDIUM: 30,
+  HIGH: 55,
+};
+
+async function applyAttackerTrustPenalty(attackerName: string, simulationSeverity: SimulationSeverity) {
+  const before = blackBoxState.userTrustScores[attackerName] ?? 50;
+  const after = Math.max(0, before - ATTACKER_TRUST_PENALTY[simulationSeverity]);
+  blackBoxState.userTrustScores[attackerName] = after;
+  await db.update(trustNodesTable)
+    .set({
+      trustScore: after,
+      riskState: after < 45 ? "COMPROMISED" : after < 70 ? "DEGRADED" : "NORMAL",
+    })
+    .where(and(eq(trustNodesTable.type, "USER"), eq(trustNodesTable.name, attackerName)));
+  broadcast("USER_TRUST_UPDATED", {
+    userName: attackerName,
+    trustBefore: before,
+    trustAfter: after,
+    severity: simulationSeverity,
+  });
+  broadcast("TRUST_UPDATE", {
+    type: "USER_TRUST_UPDATED",
+    userName: attackerName,
+    trustBefore: before,
+    trustAfter: after,
+    severity: simulationSeverity,
+  });
+  return { before, after };
+}
 
 export async function runAttackSimulation(attacker?: string, severity: SimulationSeverity = "HIGH") {
   if (blackBoxState.simulationRunning) {
@@ -27,6 +60,7 @@ export async function runAttackSimulation(attacker?: string, severity: Simulatio
   blackBoxState.reset();
   blackBoxState.currentAttacker = attackerName;
   await resetTrustGraph();
+  const attackerTrust = await applyAttackerTrustPenalty(attackerName, simulationSeverity);
   blackBoxState.simulationRunning = true;
   const incidentId = uuidv4();
   blackBoxState.currentIncidentId = incidentId;
@@ -91,7 +125,13 @@ export async function runAttackSimulation(attacker?: string, severity: Simulatio
           resolved: true,
         }).where(eq(incidentsTable.id, incidentId));
         blackBoxState.simulationRunning = false;
-        broadcast("SIMULATION_COMPLETE", { severity: simulationSeverity, attacker: attackerName });
+        broadcast("SIMULATION_COMPLETE", {
+          severity: simulationSeverity,
+          attacker: attackerName,
+          trustBefore: attackerTrust.before,
+          trustAfter: attackerTrust.after,
+          incidentId,
+        });
       } else {
       // Phase 2: Mass file access — YELLOW
       const bulkEvents = simulationSeverity === "MEDIUM" ? 35 : 200;
@@ -154,7 +194,13 @@ export async function runAttackSimulation(attacker?: string, severity: Simulatio
           resolved: true,
         }).where(eq(incidentsTable.id, incidentId));
         blackBoxState.simulationRunning = false;
-        broadcast("SIMULATION_COMPLETE", { severity: simulationSeverity, attacker: attackerName });
+        broadcast("SIMULATION_COMPLETE", {
+          severity: simulationSeverity,
+          attacker: attackerName,
+          trustBefore: attackerTrust.before,
+          trustAfter: attackerTrust.after,
+          incidentId,
+        });
         return;
       }
 
@@ -264,7 +310,14 @@ export async function runAttackSimulation(attacker?: string, severity: Simulatio
         })
         .where(eq(incidentsTable.id, incidentId));
 
-      broadcast("LOCKDOWN_COMPLETE", { lockdown: blackBoxState.lockdown, severity: simulationSeverity });
+      broadcast("SIMULATION_COMPLETE", {
+        severity: simulationSeverity,
+        attacker: attackerName,
+        trustBefore: attackerTrust.before,
+        trustAfter: attackerTrust.after,
+        incidentId,
+        lockdown: blackBoxState.lockdown,
+      });
       }
     } catch (err) {
       logger.error({ err }, "Simulation error");
