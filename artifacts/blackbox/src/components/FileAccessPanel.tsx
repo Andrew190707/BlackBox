@@ -172,7 +172,6 @@ function AccessManagerModal({
         onSuccess: (decision) => {
           setLastDecision(decision);
           queryClient.invalidateQueries({ queryKey: getGetFileAccessPolicyQueryKey() });
-          queryClient.invalidateQueries();
         },
       },
     );

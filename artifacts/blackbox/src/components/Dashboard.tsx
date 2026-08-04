@@ -20,14 +20,6 @@ import {
   getGetLockdownStateQueryKey,
   getGetTrustScoreQueryKey,
   getGetTrustAnalyticsQueryKey,
-  getListEventsQueryKey,
-  getListIncidentsQueryKey,
-  getListUsersQueryKey,
-  getGetTrustGraphQueryKey,
-  getGetFileAccessPolicyQueryKey,
-  getListSnapshotsQueryKey,
-  getListDeceptionAssetsQueryKey,
-  getGetIdentityResetStatusQueryKey,
 } from "@workspace/api-client-react";
 import { useBlackBoxWS } from "@/hooks/use-blackbox-ws";
 import { TrustGraphPanel } from "@/components/TrustGraphPanel";
@@ -113,26 +105,13 @@ export function Dashboard() {
 
   const displayNameFor = (name: string) => users?.find((user) => user.name === name)?.displayName ?? name;
 
-  const refreshLiveState = () => {
-    queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListBreakersQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListEventsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListIncidentsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetTrustScoreQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetTrustGraphQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetFileAccessPolicyQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListSnapshotsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getListDeceptionAssetsQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetIdentityResetStatusQueryKey() });
-  };
-
   useEffect(() => {
     const interval = setInterval(() => {
-      refreshLiveState();
-    }, 2000);
+      queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getListBreakersQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetTrustScoreQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
+    }, 5000);
     return () => clearInterval(interval);
   }, [queryClient]);
 
@@ -154,7 +133,6 @@ export function Dashboard() {
       { data: { attacker, severity } },
       {
         onSuccess: (res) => {
-          refreshLiveState();
           toast({
             title: "Attack simulation started",
             description: `Attacker: ${attacker} · Severity: ${severity}`,
@@ -169,7 +147,7 @@ export function Dashboard() {
     simulateReset.mutate(undefined, {
       onSuccess: () => {
         toast({ title: "System reset to baseline" });
-        refreshLiveState();
+        queryClient.invalidateQueries();
       },
     });
   };
@@ -180,7 +158,7 @@ export function Dashboard() {
       setConfirmLockdown(true);
       setTimeout(() => setConfirmLockdown(false), 3000);
     } else {
-      initiateLockdown.mutate(undefined, { onSuccess: refreshLiveState });
+      initiateLockdown.mutate();
       setConfirmLockdown(false);
     }
   };
@@ -288,7 +266,7 @@ export function Dashboard() {
                   </div>
                   <Button variant="outline" size="sm"
                     className="w-full border-primary text-primary hover:bg-primary/20 h-7 text-[10px]"
-                    onClick={() => liftLockdown.mutate(undefined, { onSuccess: refreshLiveState })} disabled={liftLockdown.isPending}>
+                    onClick={() => liftLockdown.mutate()} disabled={liftLockdown.isPending}>
                     <Unlock className="w-3 h-3 mr-1.5" /> LIFT LOCKDOWN
                   </Button>
                 </div>
@@ -470,12 +448,12 @@ export function Dashboard() {
                   </div>
                   {breaker.status === "TRIPPED" ? (
                     <Button size="sm" variant="outline" className="h-5 text-[8px] border-primary text-primary px-1.5"
-                       onClick={() => resetBreaker.mutate({ name: breaker.name }, { onSuccess: refreshLiveState })}>
+                       onClick={() => resetBreaker.mutate({ name: breaker.name })}>
                       RESET
                     </Button>
                   ) : (
                     <Button size="sm" variant="ghost" className="h-5 text-[8px] hover:bg-destructive hover:text-white px-1.5"
-                       onClick={() => tripBreaker.mutate({ name: breaker.name, data: { reason: "Operator override" } }, { onSuccess: refreshLiveState })}>
+                       onClick={() => tripBreaker.mutate({ name: breaker.name, data: { reason: "Operator override" } })}>
                       TRIP
                     </Button>
                   )}

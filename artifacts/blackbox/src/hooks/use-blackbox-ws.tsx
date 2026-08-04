@@ -9,11 +9,6 @@ import {
   getGetTrustAnalyticsQueryKey,
   getListIncidentsQueryKey,
   getListUsersQueryKey,
-  getGetTrustGraphQueryKey,
-  getGetFileAccessPolicyQueryKey,
-  getListSnapshotsQueryKey,
-  getListDeceptionAssetsQueryKey,
-  getGetIdentityResetStatusQueryKey,
   SecurityEvent
 } from '@workspace/api-client-react';
 import { toast } from '@/hooks/use-toast';
@@ -92,8 +87,6 @@ export function WSProvider({ children }: { children: ReactNode }) {
           });
           queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListBreakersQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListIncidentsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
           break;
         case 'RISK_UPDATE':
           queryClient.setQueryData(getGetRiskScoreQueryKey(), msg.data);
@@ -105,19 +98,8 @@ export function WSProvider({ children }: { children: ReactNode }) {
         case 'LOCKDOWN_PHASE':
           queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
           break;
-        case 'FILE_ACCESS_DECISION':
-        case 'USER_CONTAINED':
-        case 'TRUST_UPDATE':
-          queryClient.invalidateQueries({ queryKey: getGetFileAccessPolicyQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTrustGraphQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTrustScoreQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListEventsQueryKey({ limit: 100 }) });
-          break;
         case 'USER_TRUST_UPDATED':
         case 'SIMULATION_COMPLETE':
-        case 'SIMULATION_RESET':
           if (msg.data?.attacker && msg.data?.severity) {
             setLastSimulation({
               attacker: msg.data.attacker,
@@ -138,15 +120,6 @@ export function WSProvider({ children }: { children: ReactNode }) {
           queryClient.invalidateQueries({ queryKey: getListIncidentsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListEventsQueryKey({ limit: 100 }) });
           queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetTrustGraphQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetFileAccessPolicyQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListSnapshotsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getListDeceptionAssetsQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetIdentityResetStatusQueryKey() });
-          if (msg.type === 'SIMULATION_RESET') {
-            setLastSimulation(null);
-          }
           break;
         case 'DECEPTION_TRIGGERED':
           toast({
