@@ -1,3 +1,4 @@
 - [File access containment](file-access-containment.md) — suspicious file activity is contained per user while severing that user’s reachable trust paths.
 - [Workspace dependency overrides](workspace-dependency-overrides.md) — consolidate security overrides because duplicate YAML keys can block pnpm lockfile refreshes.
 - [Shared IAM identities](shared-iam-identities.md) — user selectors and trust views must derive from the Enterprise Access Manager profile registry.
+- [Live mutation refresh](live-mutation-refresh.md) — every state-changing action needs an immediate cache refresh plus a realtime/polling fallback.
