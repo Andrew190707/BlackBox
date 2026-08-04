@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useGetTrustGraph } from "@workspace/api-client-react";
+import { displayUserName } from "@/lib/userLabels";
 
 const TYPE_ORDER = ["USER", "DEVICE", "APPLICATION", "ASSET"] as const;
 
@@ -189,7 +190,10 @@ export function TrustGraphPanel() {
                 fontWeight="bold"
                 letterSpacing="0.03em"
               >
-                {node.name.length > 12 ? node.name.slice(0, 11) + "…" : node.name}
+                {(() => {
+                  const label = node.type === "USER" ? displayUserName(node.name) : node.name;
+                  return label.length > 12 ? label.slice(0, 11) + "…" : label;
+                })()}
               </text>
               {/* Trust score */}
               <text

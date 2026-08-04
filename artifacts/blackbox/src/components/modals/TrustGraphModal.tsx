@@ -6,6 +6,7 @@ import { useGetTrustGraph, useSeverTrustEdge } from "@workspace/api-client-react
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { GitBranch, Scissors } from "lucide-react";
+import { displayUserName } from "@/lib/userLabels";
 
 interface Props {
   open: boolean;
@@ -169,7 +170,10 @@ export function TrustGraphModal({ open, onClose }: Props) {
                   )}
                   <text x={nx + 7} y={ny + NODE_H / 2 + 1} dominantBaseline="middle"
                     fill={color} fontSize={8.5} fontWeight="bold" letterSpacing="0.02em">
-                    {node.name.length > 13 ? node.name.slice(0, 12) + "…" : node.name}
+                     {(() => {
+                       const label = node.type === "USER" ? displayUserName(node.name) : node.name;
+                       return label.length > 13 ? label.slice(0, 12) + "…" : label;
+                     })()}
                   </text>
                   <text
                     x={node.classification ? nx + NODE_W - 13 : nx + NODE_W - 5}

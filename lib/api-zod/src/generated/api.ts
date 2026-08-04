@@ -276,6 +276,7 @@ export const GetIncidentReportResponse = zod.object({
 export const ListUsersResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
+  "displayName": zod.string(),
   "empId": zod.string(),
   "department": zod.string(),
   "status": zod.enum(['Online', 'Offline']),

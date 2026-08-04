@@ -10,6 +10,7 @@ import type { UserStatus } from './userStatus';
 export interface User {
   id: string;
   name: string;
+  displayName: string;
   empId: string;
   department: string;
   status: UserStatus;

@@ -706,10 +706,11 @@ components:
 
     User:
       type: object
-      required: [id, name, empId, department, status, riskScore, trustScore, avatar]
+      required: [id, name, displayName, empId, department, status, riskScore, trustScore, avatar]
       properties:
         id:          { type: string }
         name:        { type: string }
+        displayName: { type: string }
         empId:       { type: string }
         department:  { type: string }
         status:      { type: string, enum: [Online, Offline] }

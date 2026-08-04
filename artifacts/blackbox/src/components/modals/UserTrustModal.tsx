@@ -52,11 +52,11 @@ export function UserTrustModal({ open, onClose }: Props) {
           <div className="grid grid-cols-[1fr_120px_100px] gap-2 text-[9px] text-muted-foreground uppercase tracking-wider px-2 pb-1 border-b border-border/50">
             <span>User</span><span className="text-center">Score</span><span className="text-center">Trust Level</span>
           </div>
-          {[...(users ?? [])].sort((a, b) => b.trustScore - a.trustScore).map(user => {
+          {(users ?? []).map(user => {
             const lvl = trustLevel(user.trustScore);
             return (
               <div key={user.name} className={`grid grid-cols-[1fr_120px_100px] gap-2 items-center p-2 border rounded text-[11px] ${lvl.bg}`}>
-                <span className="font-bold">{user.name}</span>
+                <span className="font-bold">{user.displayName}</span>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden">
                     <div

@@ -6,10 +6,10 @@ import { KeyRound, CheckCircle2, Loader2 } from "lucide-react";
 
 const ACTION_LABELS: Record<string, string> = {
   "admin password rotated":    "Admin PW rotated",
-  "analyst password rotated":  "Analyst PW rotated",
-  "hr_admin password rotated": "HR Admin PW rotated",
-  "dev_lead API key rotated":  "Dev Lead API key rotated",
-  "hr_admin API key rotated":  "HR Admin API key rotated",
+  "analyst password rotated":  "SOC Analyst PW rotated",
+  "hr_admin password rotated": "HR Manager PW rotated",
+  "dev_lead API key rotated":  "Security Engineer API key rotated",
+  "hr_admin API key rotated":  "HR Manager API key rotated",
   "all session tokens revoked":"Session tokens revoked",
   "all active sessions revoked":"Active sessions revoked",
   "AWS access key reset":       "AWS access key reset",

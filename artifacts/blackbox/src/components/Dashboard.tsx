@@ -103,6 +103,8 @@ export function Dashboard() {
 
   useGetRiskHistory();
 
+  const displayNameFor = (name: string) => users?.find((user) => user.name === name)?.displayName ?? name;
+
   useEffect(() => {
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
@@ -284,7 +286,7 @@ export function Dashboard() {
                     <span className="font-bold uppercase tracking-wider text-primary">
                       {lastSimulation.severity} simulation complete
                     </span>
-                    <span className="text-muted-foreground">{lastSimulation.attacker}</span>
+                    <span className="text-muted-foreground">{displayNameFor(lastSimulation.attacker)}</span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-muted-foreground">
                     <span>Attacker trust</span>
@@ -318,7 +320,7 @@ export function Dashboard() {
             <CardContent className="space-y-1 px-3 pb-3 max-h-36 overflow-y-auto">
               {users?.map((user) => (
                 <div key={user.name} className="flex items-center justify-between">
-                  <span className="truncate flex-1 text-[9px]">{user.name}</span>
+                  <span className="truncate flex-1 text-[9px]">{user.displayName}</span>
                   <div className="flex items-center gap-1.5 ml-2">
                     <div className="w-14 h-1 bg-muted/30 rounded-full overflow-hidden">
                       <div
@@ -371,7 +373,7 @@ export function Dashboard() {
                       className={`text-[9px] p-1 border-l-2 flex items-start gap-2 transition-colors ${EVENT_CLASS(evt)}`}>
                       <span className="text-muted-foreground tabular-nums shrink-0 w-14">{new Date(evt.timestamp).toLocaleTimeString([], { hour12: false })}</span>
                       <span className={`font-bold shrink-0 w-32 truncate ${evt.threatState === "RED" || evt.eventType.includes("LOCKDOWN") ? "text-destructive" : evt.threatState === "ORANGE" ? "text-yellow-500" : "text-primary"}`}>{evt.eventType}</span>
-                      <span className="text-muted-foreground shrink-0 w-16 truncate">{evt.user}</span>
+                      <span className="text-muted-foreground shrink-0 w-16 truncate">{displayNameFor(evt.user)}</span>
                       <span className="flex-1 truncate opacity-80">{evt.details}</span>
                       {evt.riskDelta > 0 && <span className="text-destructive font-bold ml-auto tabular-nums">+{evt.riskDelta}</span>}
                     </div>

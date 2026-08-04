@@ -89,7 +89,7 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider truncate">
-                      {u.name}
+                      {u.displayName}
                     </span>
                     <span className={`text-[8px] uppercase px-1 py-0.5 rounded ${u.status === "Online" ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
                       {u.status}

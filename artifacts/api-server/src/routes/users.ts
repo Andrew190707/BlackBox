@@ -34,6 +34,7 @@ router.get("/users", async (_req, res) => {
     return {
       id: node?.id ?? `user-${name}`,
       name,
+      displayName: profile.displayName,
       empId: `EMP-${1000 + idx * 23}`,
       department: profile.department,
       status: node?.riskState === "COMPROMISED" || profile.riskStatus === "COMPROMISED" ? "Offline" : "Online",

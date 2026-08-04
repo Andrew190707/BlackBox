@@ -12,6 +12,7 @@ import {
   SecurityEvent
 } from '@workspace/api-client-react';
 import { toast } from '@/hooks/use-toast';
+import { displayUserName } from '@/lib/userLabels';
 
 export type WSStatus = 'connecting' | 'connected' | 'disconnected';
 
@@ -19,6 +20,7 @@ interface WSContextType {
   status: WSStatus;
   lastSimulation: {
     attacker: string;
+    attackerDisplayName?: string;
     severity: 'LOW' | 'MEDIUM' | 'HIGH';
     trustBefore?: number;
     trustAfter?: number;
@@ -101,13 +103,14 @@ export function WSProvider({ children }: { children: ReactNode }) {
           if (msg.data?.attacker && msg.data?.severity) {
             setLastSimulation({
               attacker: msg.data.attacker,
+              attackerDisplayName: displayUserName(msg.data.attacker),
               severity: msg.data.severity,
               trustBefore: msg.data.trustBefore,
               trustAfter: msg.data.trustAfter,
             });
             toast({
               title: `${msg.data.severity} simulation complete`,
-              description: `${msg.data.attacker} trust changed from ${Math.round(msg.data.trustBefore ?? 0)} to ${Math.round(msg.data.trustAfter ?? 0)}.`,
+              description: `${displayUserName(msg.data.attacker)} trust changed from ${Math.round(msg.data.trustBefore ?? 0)} to ${Math.round(msg.data.trustAfter ?? 0)}.`,
               variant: msg.data.severity === 'HIGH' ? 'destructive' : 'default',
             });
           }
