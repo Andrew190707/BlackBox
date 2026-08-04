@@ -7,6 +7,7 @@ import {
   getGetLockdownStateQueryKey,
   getGetTrustScoreQueryKey,
   getGetTrustAnalyticsQueryKey,
+  getGetTrustGraphQueryKey,
   getListIncidentsQueryKey,
   getListUsersQueryKey,
   SecurityEvent
@@ -120,6 +121,15 @@ export function WSProvider({ children }: { children: ReactNode }) {
           queryClient.invalidateQueries({ queryKey: getListIncidentsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getListEventsQueryKey({ limit: 100 }) });
           queryClient.invalidateQueries({ queryKey: getGetRiskScoreQueryKey() });
+          break;
+        case 'TRUST_UPDATE':
+          queryClient.invalidateQueries({ queryKey: getGetTrustGraphQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
+          break;
+        case 'USER_CONTAINED':
+          queryClient.invalidateQueries({ queryKey: getGetTrustGraphQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetTrustAnalyticsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
           break;
         case 'DECEPTION_TRIGGERED':
           toast({
