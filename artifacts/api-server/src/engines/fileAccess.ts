@@ -155,7 +155,7 @@ export async function seedFileAccessData() {
     ["ceo", 99, "NORMAL"],
     ["cfo", 99, "NORMAL"],
     ["unknown_user", 70, "DEGRADED"],
-    ["attacker", 30, "COMPROMISED"],
+    ["attacker", 100, "NORMAL"],
   ] as const;
   for (const [name, trustScore, riskState] of seededUserProfiles) {
     const [existingUser] = await db
@@ -240,7 +240,7 @@ export async function seedFileAccessData() {
     ["cfo", "Finance Manager", "Finance", "Finance", "10.0.0.51", "New York, US", "TRUSTED"],
     ["ceo", "Executive", "Executive Leadership", "Executive", "10.0.0.5", "New York, US", "TRUSTED"],
     ["unknown_user", "Intern", "Internship Program", "People Operations", "10.0.0.77", "Boston, US", "ELEVATED"],
-    ["attacker", "Guest", "External Access", "Unassigned", "203.0.113.44", "Unknown", "COMPROMISED"],
+    ["attacker", "Guest", "External Access", "Unassigned", "203.0.113.44", "Unknown", "TRUSTED"],
   ] as const;
   for (const [userName, displayName, role, department, currentIp, currentLocation, riskStatus] of profiles) {
     await db.insert(companyUserProfilesTable).values({

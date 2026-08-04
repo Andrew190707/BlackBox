@@ -17,7 +17,7 @@ export async function seedTrustGraph(): Promise<void> {
     { id: uuidv4(), type: "USER",        name: "cfo",                 trustScore: 99,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "USER",        name: "ceo",                 trustScore: 99,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "USER",        name: "unknown_user",       trustScore: 70,  classification: null,         riskState: "DEGRADED" },
-    { id: uuidv4(), type: "USER",        name: "attacker",           trustScore: 30,  classification: null,         riskState: "COMPROMISED" },
+    { id: uuidv4(), type: "USER",        name: "attacker",           trustScore: 100, classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "WKSTN-ADMIN-01",     trustScore: 100, classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "WKSTN-ANALYST-02",   trustScore: 95,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "UNKNOWN-DEVICE",     trustScore: 40,  classification: null,         riskState: "COMPROMISED" },
