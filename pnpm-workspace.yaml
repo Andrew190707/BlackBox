@@ -62,7 +62,7 @@ catalog:
   tailwind-merge: ^3.3.1
   tailwindcss: ^4.1.14
   tsx: ^4.21.0
-  vite: ^7.3.2
+  vite: ^7.3.5
   wouter: ^3.3.5
   zod: ^3.25.76
 
@@ -75,6 +75,16 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  # Security fixes for transitive packages reported by pnpm audit.
+  "@babel/core": "7.29.7"
+  "body-parser": "2.3.0"
+  "brace-expansion": "5.0.9"
+  "esbuild": "0.28.1"
+  "fast-uri": "3.1.5"
+  "js-yaml": "4.3.0"
+  "linkify-it": "5.0.2"
+  "markdown-it": "14.3.0"
+  "postcss": "8.5.25"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"
@@ -155,8 +165,7 @@ overrides:
   "@expo/ngrok-bin>@expo/ngrok-bin-sunos-x64": "-"
   "@expo/ngrok-bin>@expo/ngrok-bin-win32-ia32": "-"
   "@expo/ngrok-bin>@expo/ngrok-bin-win32-x64": "-"
-  # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
+  # drizzle-kit uses esbuild internally; keep it on the patched release
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
-  esbuild: "0.27.3"
   # Fix GHSA-q8mj-m7cp-5q26 — qs prototype pollution vulnerability
   qs: "^6.15.2"
