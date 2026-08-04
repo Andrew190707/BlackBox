@@ -7,7 +7,10 @@ import { logger } from "../lib/logger";
 
 export async function seedTrustGraph(): Promise<void> {
   const existing = await db.select().from(trustNodesTable).limit(1);
-  if (existing.length > 0) return;
+  if (existing.length > 0) {
+    await ensureGuestTrustConnections();
+    return;
+  }
 
   const nodes = [
     { id: uuidv4(), type: "USER",        name: "admin",              trustScore: 100, classification: null,         riskState: "NORMAL" },
@@ -17,7 +20,7 @@ export async function seedTrustGraph(): Promise<void> {
     { id: uuidv4(), type: "USER",        name: "cfo",                 trustScore: 99,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "USER",        name: "ceo",                 trustScore: 99,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "USER",        name: "unknown_user",       trustScore: 70,  classification: null,         riskState: "DEGRADED" },
-    { id: uuidv4(), type: "USER",        name: "attacker",           trustScore: 30,  classification: null,         riskState: "COMPROMISED" },
+    { id: uuidv4(), type: "USER",        name: "attacker",           trustScore: 100, classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "WKSTN-ADMIN-01",     trustScore: 100, classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "WKSTN-ANALYST-02",   trustScore: 95,  classification: null,         riskState: "NORMAL" },
     { id: uuidv4(), type: "DEVICE",      name: "UNKNOWN-DEVICE",     trustScore: 40,  classification: null,         riskState: "COMPROMISED" },
@@ -51,12 +54,45 @@ export async function seedTrustGraph(): Promise<void> {
     { id: uuidv4(), fromNodeId: m["unknown_user"],  toNodeId: m["UNKNOWN-DEVICE"],      trustScore: 40,  severed: false, severedAt: null },
     { id: uuidv4(), fromNodeId: m["UNKNOWN-DEVICE"],toNodeId: m["cmd.exe"],             trustScore: 40,  severed: false, severedAt: null },
     { id: uuidv4(), fromNodeId: m["cmd.exe"],       toNodeId: m["/etc/shadow"],         trustScore: 30,  severed: false, severedAt: null },
-    { id: uuidv4(), fromNodeId: m["attacker"],      toNodeId: m["UNKNOWN-DEVICE"],      trustScore: 30,  severed: false, severedAt: null },
+    { id: uuidv4(), fromNodeId: m["attacker"],      toNodeId: m["UNKNOWN-DEVICE"],      trustScore: 100, severed: false, severedAt: null },
     { id: uuidv4(), fromNodeId: m["cmd.exe"],       toNodeId: m["AWS_AccessKeys.csv"],  trustScore: 25,  severed: false, severedAt: null },
   ];
 
   await db.insert(trustEdgesTable).values(edges);
+  await ensureGuestTrustConnections();
   logger.info("Trust graph seeded");
+}
+
+async function ensureGuestTrustConnections() {
+  const nodes = await db.select().from(trustNodesTable);
+  const guest = nodes.find((node) => node.type === "USER" && node.name === "attacker");
+  if (!guest) return;
+
+  await db.update(trustNodesTable)
+    .set({ trustScore: 100, riskState: "NORMAL" })
+    .where(eq(trustNodesTable.id, guest.id));
+
+  const guestEdges = await db.select().from(trustEdgesTable).where(eq(trustEdgesTable.fromNodeId, guest.id));
+  for (const node of nodes) {
+    if (node.id === guest.id) continue;
+
+    const existingEdge = guestEdges.find((edge) => edge.toNodeId === node.id);
+    if (existingEdge) {
+      await db.update(trustEdgesTable)
+        .set({ trustScore: 100, severed: false, severedAt: null })
+        .where(eq(trustEdgesTable.id, existingEdge.id));
+      continue;
+    }
+
+    await db.insert(trustEdgesTable).values({
+      id: uuidv4(),
+      fromNodeId: guest.id,
+      toNodeId: node.id,
+      trustScore: 100,
+      severed: false,
+      severedAt: null,
+    });
+  }
 }
 
 export async function getTrustGraph() {
