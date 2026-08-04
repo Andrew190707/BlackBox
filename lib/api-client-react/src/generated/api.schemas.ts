@@ -135,9 +135,23 @@ export interface SimulateResult {
   attacker?: string | null;
 }
 
+/**
+ * Severity controls the intensity and governance response of the simulation
+ */
+export type SimulateAttackInputSeverity = typeof SimulateAttackInputSeverity[keyof typeof SimulateAttackInputSeverity];
+
+
+export const SimulateAttackInputSeverity = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+} as const;
+
 export interface SimulateAttackInput {
   /** Username of the selected attacker to simulate */
   attacker: string;
+  /** Severity controls the intensity and governance response of the simulation */
+  severity: SimulateAttackInputSeverity;
 }
 
 export type UserStatus = typeof UserStatus[keyof typeof UserStatus];
@@ -264,6 +278,18 @@ export interface FileAccessGrant {
   createdAt?: string;
 }
 
+export interface CompanyUserProfile {
+  userName: string;
+  displayName: string;
+  role: string;
+  department: string;
+  lastLogin: string;
+  currentIp: string;
+  currentLocation: string;
+  riskStatus: string;
+  trustScore: number;
+}
+
 export interface FileUserContainment {
   userName: string;
   active: boolean;
@@ -339,6 +365,7 @@ export interface FileAccessPolicy {
   containments: FileUserContainment[];
   attempts: FileAccessAttempt[];
   users: string[];
+  profiles: CompanyUserProfile[];
   scoring: FileAccessScoring;
 }
 

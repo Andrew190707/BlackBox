@@ -1,0 +1,470 @@
+I DO NOT want a new page, card, section, or dashboard.
+
+I want you to REPLACE and UPGRADE the existing "File Access Policy Test" component into a fully interactive Enterprise Access Manager while preserving the current UI style of BlackBox.
+
+The current "File Access Policy Test" should become an Access Manager that opens as a detailed modal/dialog when clicked.
+
+==========================================================
+GOAL
+==========================================================
+
+BlackBox should now simulate a real corporate environment.
+
+Create a demo company file system stored in the database.
+
+Every file belongs to a category and every user has role-based permissions.
+
+The purpose is to demonstrate Zero Trust, Behavioral Monitoring and Autonomous Governance.
+
+==========================================================
+DATABASE
+==========================================================
+
+Create demo database records.
+
+Users
+
+Admin
+SOC Analyst
+Security Engineer
+HR Manager
+Finance Manager
+Developer
+Intern
+Guest
+
+Each user should have
+
+- Name
+- Role
+- Department
+- Trust Score
+- Last Login
+- Current IP
+- Current Location
+- Risk Status
+
+==========================================================
+FILES
+==========================================================
+
+Populate the database with realistic company files.
+
+Examples
+
+Financial_Report_2026.xlsx
+Employee_Salaries.xlsx
+Payroll.pdf
+SOC_Logs.zip
+Firewall_Config.conf
+Incident_Report.pdf
+Customer_Database.sql
+HR_Employees.docx
+Source_Code.zip
+API_Keys.txt
+Dev_Docs.pdf
+Threat_Intelligence.pdf
+Network_Diagram.vsdx
+Cloud_Credentials.json
+Security_Policies.pdf
+Executive_Strategy.pdf
+Audit_Report.pdf
+VPN_Config.ovpn
+PCI_Compliance.pdf
+Production_Backup.tar
+
+Every file should contain metadata
+
+Owner
+
+Classification
+
+Public
+Internal
+Confidential
+Restricted
+Top Secret
+
+Size
+
+Department
+
+Allowed Roles
+
+==========================================================
+ROLE ACCESS
+==========================================================
+
+Every role should only access appropriate files.
+
+Example
+
+Admin
+
+Everything
+
+SOC Analyst
+
+SOC Logs
+Threat Intelligence
+Incident Reports
+Firewall Config
+
+Finance
+
+Payroll
+Financial Reports
+
+HR
+
+Employee Records
+Policies
+
+Developer
+
+Source Code
+Development Docs
+
+Guest
+
+Only Public Documents
+
+Intern
+
+Only training material and public docs.
+
+==========================================================
+ACCESS MANAGER
+==========================================================
+
+Replace the current File Access Policy Test.
+
+Instead display
+
+Access Manager
+
+Inside the popup
+
+User selector
+
+File explorer
+
+Permissions
+
+Allowed Files
+
+Restricted Files
+
+Trust Score
+
+Last Activity
+
+Location
+
+IP Address
+
+Current Session
+
+Search Files
+
+Filter by Classification
+
+Filter by Department
+
+==========================================================
+FILE INTERACTION
+==========================================================
+
+When a user is selected
+
+The user should ONLY be able to click files he is allowed to access.
+
+Allowed files
+
+Open successfully
+
+Restricted files
+
+Trigger policy violation.
+
+Display
+
+ACCESS DENIED
+
+Policy Violation
+
+Decrease Trust Score
+
+Generate Live Event
+
+Log to Flight Recorder
+
+Broadcast WebSocket Event
+
+==========================================================
+TRUST SCORE
+==========================================================
+
+Every unauthorized access attempt reduces trust.
+
+Example
+
+View Restricted File
+
+-5
+
+Download Restricted File
+
+-10
+
+Copy Restricted File
+
+-15
+
+Share Restricted File
+
+-25
+
+Access Top Secret
+
+-40
+
+Repeated Attempts
+
+Progressively larger penalties.
+
+If trust falls below thresholds
+
+Trigger existing Circuit Breakers.
+
+==========================================================
+ATTACK SIMULATION
+==========================================================
+
+DO NOT create another simulation page.
+
+Instead modify the existing Attack Simulation popup.
+
+Currently it lets me choose an attacker.
+
+Keep that.
+
+Add another dropdown
+
+Simulation Severity
+
+Low
+
+Medium
+
+High
+
+==========================================================
+LOW
+==========================================================
+
+Simulate
+
+1 or 2 unauthorized reads
+
+View restricted file
+
+Minor location anomaly
+
+One unusual login
+
+Trust decrease
+
+Warning only
+
+Generate Yellow alerts.
+
+==========================================================
+MEDIUM
+==========================================================
+
+Simulate
+
+Mass file browsing
+
+Download confidential files
+
+Repeated permission violations
+
+Multiple denied access attempts
+
+Different IP
+
+Different country login
+
+USB insertion
+
+Cloud upload attempt
+
+Trigger Orange alert
+
+Trip appropriate circuit breakers
+
+Reduce trust significantly.
+
+==========================================================
+HIGH
+==========================================================
+
+Simulate a serious insider attack.
+
+Possible actions
+
+Mass file download
+
+Reading dozens of restricted documents
+
+Downloading confidential HR records
+
+Downloading Finance documents
+
+Attempting API key theft
+
+Credential harvesting
+
+Accessing Cloud Credentials
+
+Privilege escalation attempt
+
+VPN misuse
+
+Remote login from foreign country
+
+Impossible travel
+
+Lateral movement
+
+Restricted file sharing
+
+Copying to USB
+
+Cloud exfiltration
+
+Printing sensitive documents
+
+Multiple sessions
+
+Token abuse
+
+Session hijack attempt
+
+Repeated policy violations
+
+Generate Red alerts
+
+Trip multiple circuit breakers
+
+Trigger Lockdown Protocol automatically
+
+Deploy deception assets
+
+Generate forensic snapshot
+
+Populate Incident Timeline
+
+Generate WS events
+
+Reduce trust dramatically.
+
+==========================================================
+VISUALIZATION
+==========================================================
+
+The popup should visually show
+
+Accessible files
+
+Grey Lock icon
+
+Restricted files
+
+Red Lock icon
+
+Opened files
+
+Green
+
+Suspicious files
+
+Orange
+
+Compromised activity
+
+Animated Red
+
+Show permission tooltips.
+
+==========================================================
+LIVE EVENTS
+==========================================================
+
+Every interaction should appear in the existing Live Event Feed.
+
+Examples
+
+SOC Analyst opened SOC_Logs.zip
+
+Finance attempted API_Keys.txt
+
+Unauthorized Access Blocked
+
+Trust Score Reduced
+
+Circuit Breaker Triggered
+
+Location Anomaly Detected
+
+USB Detected
+
+Cloud Upload Blocked
+
+Identity Reset Initiated
+
+==========================================================
+FORENSICS
+==========================================================
+
+Unauthorized actions should automatically generate
+
+Flight Recorder entries
+
+Snapshots
+
+Timeline events
+
+User behavioral history
+
+==========================================================
+IMPORTANT
+==========================================================
+
+DO NOT create another dashboard.
+
+DO NOT add another section.
+
+DO NOT duplicate components.
+
+The existing "File Access Policy Test" should become this Access Manager.
+
+The existing Attack Simulation popup should be extended with the new Severity selector.
+
+Reuse existing WebSocket architecture.
+
+Reuse existing Trust Score system.
+
+Reuse existing Circuit Breakers.
+
+Reuse existing Lockdown Protocol.
+
+Reuse existing Incident Timeline.
+
+Reuse existing Deception Engine.
+
+Reuse existing database architecture whenever possible.
+
+Everything should feel like one integrated BlackBox platform rather than a new feature.

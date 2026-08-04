@@ -694,11 +694,15 @@ components:
 
     SimulateAttackInput:
       type: object
-      required: [attacker]
+      required: [attacker, severity]
       properties:
         attacker:
           type: string
           description: Username of the selected attacker to simulate
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: Severity controls the intensity and governance response of the simulation
 
     User:
       type: object
@@ -846,6 +850,20 @@ components:
         granted:      { type: boolean }
         createdAt:    { type: string }
 
+    CompanyUserProfile:
+      type: object
+      required: [userName, displayName, role, department, lastLogin, currentIp, currentLocation, riskStatus, trustScore]
+      properties:
+        userName:        { type: string }
+        displayName:     { type: string }
+        role:            { type: string }
+        department:      { type: string }
+        lastLogin:       { type: string }
+        currentIp:       { type: string }
+        currentLocation: { type: string }
+        riskStatus:      { type: string }
+        trustScore:      { type: number }
+
     FileUserContainment:
       type: object
       required: [userName, active, reason, severedConnections]
@@ -932,7 +950,7 @@ components:
 
     FileAccessPolicy:
       type: object
-      required: [files, grants, containments, attempts, users, scoring]
+      required: [files, grants, containments, attempts, users, profiles, scoring]
       properties:
         files:
           type: array
@@ -953,6 +971,10 @@ components:
         users:
           type: array
           items: { type: string }
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompanyUserProfile"
         scoring:
           $ref: "#/components/schemas/FileAccessScoring"
 

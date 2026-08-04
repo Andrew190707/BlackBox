@@ -9,7 +9,8 @@ const router = Router();
 
 router.post("/simulate/attack", async (req, res) => {
   const attacker = req.body?.attacker as string | undefined;
-  const result = await runAttackSimulation(attacker);
+  const severity = req.body?.severity as "LOW" | "MEDIUM" | "HIGH" | undefined;
+  const result = await runAttackSimulation(attacker, severity);
   res.json(result);
 });
 

@@ -124,16 +124,16 @@ export function Dashboard() {
     setAttackerModal(true);
   };
 
-  const handleStartSimulation = (attacker: string) => {
+  const handleStartSimulation = (attacker: string, severity: "LOW" | "MEDIUM" | "HIGH") => {
     setAttackerModal(false);
     setLastAttacker(attacker);
     simulateAttack.mutate(
-      { data: { attacker } },
+      { data: { attacker, severity } },
       {
         onSuccess: (res) => {
           toast({
             title: "Attack simulation started",
-            description: `Attacker: ${attacker}`,
+            description: `Attacker: ${attacker} · Severity: ${severity}`,
           });
         },
         onError: () => toast({ title: "Simulation failed", variant: "destructive" }),

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.3.0
  */
 import type { CompanyFile } from './companyFile';
+import type { CompanyUserProfile } from './companyUserProfile';
 import type { FileAccessAttempt } from './fileAccessAttempt';
 import type { FileAccessGrant } from './fileAccessGrant';
 import type { FileAccessScoring } from './fileAccessScoring';
@@ -17,5 +18,6 @@ export interface FileAccessPolicy {
   containments: FileUserContainment[];
   attempts: FileAccessAttempt[];
   users: string[];
+  profiles: CompanyUserProfile[];
   scoring: FileAccessScoring;
 }

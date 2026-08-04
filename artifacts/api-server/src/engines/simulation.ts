@@ -15,12 +15,15 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export async function runAttackSimulation(attacker?: string) {
+export type SimulationSeverity = "LOW" | "MEDIUM" | "HIGH";
+
+export async function runAttackSimulation(attacker?: string, severity: SimulationSeverity = "HIGH") {
   if (blackBoxState.simulationRunning) {
     return { success: false, message: "Simulation already running" };
   }
 
   const attackerName = attacker ?? "unknown_user";
+  const simulationSeverity = severity === "LOW" || severity === "MEDIUM" ? severity : "HIGH";
   blackBoxState.reset();
   blackBoxState.currentAttacker = attackerName;
   await resetTrustGraph();
@@ -67,18 +70,42 @@ export async function runAttackSimulation(attacker?: string) {
       addTimeline("Normal file access patterns — risk GREEN ~20", "low");
       await sleep(2000);
 
+      if (simulationSeverity === "LOW") {
+        for (let i = 0; i < 2; i++) {
+          await logEvent({
+            eventType: "FILE_ACCESS_VIOLATION",
+            user: attackerName,
+            source: randomFile(),
+            details: { unauthorized: true, locationAnomaly: i === 1, severity: simulationSeverity },
+            riskDeltaOverride: 4,
+          });
+        }
+        addTimeline(`Low severity simulation — 2 unauthorized reads and a minor location anomaly by ${attackerName}`, "medium");
+        await db.update(incidentsTable).set({
+          endTime: new Date(),
+          peakRiskScore: blackBoxState.riskScore,
+          threatStateReached: blackBoxState.threatState,
+          timeline: JSON.stringify(timelineEntries),
+          breakersTripped: JSON.stringify([]),
+          summary: `Low attack simulation by ${attackerName}: two unauthorized reads and a minor location anomaly detected.`,
+          resolved: true,
+        }).where(eq(incidentsTable.id, incidentId));
+        blackBoxState.simulationRunning = false;
+        broadcast("SIMULATION_COMPLETE", { severity: simulationSeverity, attacker: attackerName });
+      } else {
       // Phase 2: Mass file access — YELLOW
-      for (let i = 0; i < 200; i++) {
+      const bulkEvents = simulationSeverity === "MEDIUM" ? 35 : 200;
+      for (let i = 0; i < bulkEvents; i++) {
         await logEvent({
           eventType: "FILE_ACCESS",
           user: attackerName,
           source: randomFile(),
-          details: { bulk: true, volume: "high", attacker: true },
-          riskDeltaOverride: 0.22,
+          details: { bulk: true, volume: simulationSeverity === "MEDIUM" ? "medium" : "high", attacker: true, severity: simulationSeverity },
+          riskDeltaOverride: simulationSeverity === "MEDIUM" ? 0.8 : 0.22,
         });
         if (i % 25 === 0) await sleep(250);
       }
-      addTimeline(`Mass file access — 200 FILE_ACCESS events by ${attackerName} — risk YELLOW`, "high");
+      addTimeline(`Mass file access — ${bulkEvents} FILE_ACCESS events by ${attackerName} — risk ${simulationSeverity === "MEDIUM" ? "ORANGE" : "YELLOW"}`, "high");
       await sleep(1500);
 
       // Phase 3: Suspicious login — ORANGE
@@ -107,6 +134,29 @@ export async function runAttackSimulation(attacker?: string) {
       });
       addTimeline("Risk > 70 — EXTERNAL_TRANSFER breaker auto-tripped", "high");
       await sleep(1200);
+
+      if (simulationSeverity === "MEDIUM") {
+        await logEvent({
+          eventType: "CLOUD_UPLOAD_BLOCKED",
+          user: attackerName,
+          source: "cloud://external-upload",
+          details: { differentIp: true, differentCountry: true, usb: true, severity: simulationSeverity },
+          riskDeltaOverride: 12,
+        });
+        addTimeline(`Medium severity simulation — repeated violations, foreign login, USB insertion, and cloud upload blocked`, "high");
+        await db.update(incidentsTable).set({
+          endTime: new Date(),
+          peakRiskScore: blackBoxState.riskScore,
+          threatStateReached: blackBoxState.threatState,
+          timeline: JSON.stringify(timelineEntries),
+          breakersTripped: JSON.stringify(Object.keys(blackBoxState.breakers).filter((name) => blackBoxState.breakers[name]?.status === "TRIPPED")),
+          summary: `Medium attack simulation by ${attackerName}: mass browsing, confidential downloads, foreign login, USB insertion, and cloud upload blocked.`,
+          resolved: true,
+        }).where(eq(incidentsTable.id, incidentId));
+        blackBoxState.simulationRunning = false;
+        broadcast("SIMULATION_COMPLETE", { severity: simulationSeverity, attacker: attackerName });
+        return;
+      }
 
       await logEvent({
         eventType: "FILE_ACCESS",
@@ -214,7 +264,8 @@ export async function runAttackSimulation(attacker?: string) {
         })
         .where(eq(incidentsTable.id, incidentId));
 
-      broadcast("LOCKDOWN_COMPLETE", { lockdown: blackBoxState.lockdown });
+      broadcast("LOCKDOWN_COMPLETE", { lockdown: blackBoxState.lockdown, severity: simulationSeverity });
+      }
     } catch (err) {
       logger.error({ err }, "Simulation error");
     } finally {
@@ -222,5 +273,5 @@ export async function runAttackSimulation(attacker?: string) {
     }
   })();
 
-  return { success: true, message: `Attack simulation started — attacker: ${attackerName}`, attacker: attackerName };
+  return { success: true, message: `${simulationSeverity} attack simulation started — attacker: ${attackerName}`, attacker: attackerName };
 }

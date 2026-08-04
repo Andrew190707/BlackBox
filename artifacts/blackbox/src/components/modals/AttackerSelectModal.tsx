@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { useListUsers } from "@workspace/api-client-react";
 import { Loader2, CircleDot, Zap } from "lucide-react";
 
+type SimulationSeverity = "LOW" | "MEDIUM" | "HIGH";
+
 interface Props {
   open: boolean;
   onClose: () => void;
-  onStart: (attackerName: string) => void;
+  onStart: (attackerName: string, severity: SimulationSeverity) => void;
   lastSelected?: string | null;
 }
 
 export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Props) {
   const { data: users, isLoading } = useListUsers();
   const [selected, setSelected] = useState<string | null>(lastSelected ?? null);
+  const [severity, setSeverity] = useState<SimulationSeverity>("HIGH");
 
   useEffect(() => {
     if (open && lastSelected) setSelected(lastSelected);
@@ -23,9 +26,9 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
     (e: KeyboardEvent) => {
       if (!open) return;
       if (e.key === "Escape") onClose();
-      if (e.key === "Enter" && selected) onStart(selected);
+       if (e.key === "Enter" && selected) onStart(selected, severity);
     },
-    [open, selected, onClose, onStart]
+     [open, selected, severity, onClose, onStart]
   );
 
   useEffect(() => {
@@ -125,6 +128,31 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
           })}
         </div>
 
+        <div className="border-t border-primary/10 px-5 py-3">
+          <div className="mb-2 text-[9px] uppercase tracking-widest text-muted-foreground">Simulation severity</div>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              ["LOW", "Warning activity", "text-yellow-300 border-yellow-500/40 bg-yellow-500/5"],
+              ["MEDIUM", "Breaker response", "text-orange-300 border-orange-500/40 bg-orange-500/5"],
+              ["HIGH", "Full lockdown", "text-red-300 border-red-500/40 bg-red-500/5"],
+            ] as const).map(([value, label, colors]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSeverity(value)}
+                className={`rounded border px-2 py-2 text-left transition-all ${
+                  severity === value
+                    ? `${colors} ring-1 ring-current`
+                    : "border-border/50 bg-card/30 text-muted-foreground hover:border-primary/30"
+                }`}
+              >
+                <div className="text-[10px] font-bold uppercase tracking-wider">{value}</div>
+                <div className="mt-0.5 text-[8px] opacity-80">{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Footer */}
         <div className="px-5 py-3 border-t border-primary/10 flex justify-end gap-2">
           <Button
@@ -138,7 +166,7 @@ export function AttackerSelectModal({ open, onClose, onStart, lastSelected }: Pr
           <Button
             size="sm"
             disabled={!selected}
-            onClick={() => selected && onStart(selected)}
+             onClick={() => selected && onStart(selected, severity)}
             className={`h-8 text-[10px] uppercase tracking-widest font-bold transition-all
               ${selected
                 ? "bg-primary text-black hover:bg-primary/80"

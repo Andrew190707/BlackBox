@@ -290,7 +290,8 @@ export const ListUsersResponse = zod.array(ListUsersResponseItem)
  * @summary Trigger demo attack sequence
  */
 export const SimulateAttackBody = zod.object({
-  "attacker": zod.string().describe('Username of the selected attacker to simulate')
+  "attacker": zod.string().describe('Username of the selected attacker to simulate'),
+  "severity": zod.enum(['LOW', 'MEDIUM', 'HIGH']).describe('Severity controls the intensity and governance response of the simulation')
 })
 
 export const SimulateAttackResponse = zod.object({
@@ -475,6 +476,17 @@ export const GetFileAccessPolicyResponse = zod.object({
   "createdAt": zod.string()
 })),
   "users": zod.array(zod.string()),
+  "profiles": zod.array(zod.object({
+  "userName": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.string(),
+  "department": zod.string(),
+  "lastLogin": zod.string(),
+  "currentIp": zod.string(),
+  "currentLocation": zod.string(),
+  "riskStatus": zod.string(),
+  "trustScore": zod.number()
+})),
   "scoring": zod.object({
   "trustBaseline": zod.number(),
   "trustContainmentThreshold": zod.number(),

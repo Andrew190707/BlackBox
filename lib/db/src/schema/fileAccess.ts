@@ -14,6 +14,18 @@ export const companyFilesTable = pgTable("company_files", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const companyUserProfilesTable = pgTable("company_user_profiles", {
+  userName: text("user_name").primaryKey(),
+  displayName: text("display_name").notNull(),
+  role: text("role").notNull(),
+  department: text("department").notNull(),
+  lastLogin: timestamp("last_login", { withTimezone: true }).notNull(),
+  currentIp: text("current_ip").notNull(),
+  currentLocation: text("current_location").notNull(),
+  riskStatus: text("risk_status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const fileAccessGrantsTable = pgTable("file_access_grants", {
   id: text("id").primaryKey(),
   fileId: text("file_id").notNull(),
@@ -55,6 +67,7 @@ export const fileUserContainmentsTable = pgTable("file_user_containments", {
 
 export const insertCompanyFileSchema = createInsertSchema(companyFilesTable);
 export type CompanyFile = typeof companyFilesTable.$inferSelect;
+export type CompanyUserProfile = typeof companyUserProfilesTable.$inferSelect;
 export type FileAccessGrant = typeof fileAccessGrantsTable.$inferSelect;
 export type FileAccessAttempt = typeof fileAccessAttemptsTable.$inferSelect;
 export type FileUserContainment = typeof fileUserContainmentsTable.$inferSelect;

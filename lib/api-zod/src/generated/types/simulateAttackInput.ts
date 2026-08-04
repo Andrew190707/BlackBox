@@ -5,8 +5,11 @@
  * BlackBox Cyber Governance API
  * OpenAPI spec version: 0.3.0
  */
+import type { SimulateAttackInputSeverity } from './simulateAttackInputSeverity';
 
 export interface SimulateAttackInput {
   /** Username of the selected attacker to simulate */
   attacker: string;
+  /** Severity controls the intensity and governance response of the simulation */
+  severity: SimulateAttackInputSeverity;
 }

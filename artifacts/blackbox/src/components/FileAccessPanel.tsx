@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  useGetFileAccessPolicy,
   getGetFileAccessPolicyQueryKey,
   useEvaluateFileAccess,
+  useGetFileAccessPolicy,
+  type FileAccessPolicy,
+  type CompanyFile,
 } from "@workspace/api-client-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,59 +25,147 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import {
-  FileText,
-  User,
-  Shield,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Lock,
   Activity,
-  Database,
-  Clock,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Filter,
+  Globe2,
+  KeyRound,
+  Lock,
+  MapPin,
+  Search,
+  Shield,
+  ShieldAlert,
+  User,
+  XCircle,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 
-const ACTION_OPTIONS = [
-  "READ",
-  "DOWNLOAD",
-  "MASS_DOWNLOAD",
-  "MULTI_FILE_ACCESS",
-] as const;
+const ACTION_OPTIONS = ["READ", "DOWNLOAD", "COPY", "SHARE"] as const;
+const CLASSIFICATIONS = ["ALL", "PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "TOP SECRET"];
 
-export function FileAccessPanel() {
+function classificationStyle(classification: string) {
+  if (classification === "TOP SECRET") return "border-red-500/50 text-red-400 bg-red-500/10";
+  if (classification === "RESTRICTED") return "border-orange-500/50 text-orange-400 bg-orange-500/10";
+  if (classification === "CONFIDENTIAL") return "border-yellow-500/50 text-yellow-400 bg-yellow-500/10";
+  if (classification === "PUBLIC") return "border-green-500/50 text-green-400 bg-green-500/10";
+  return "border-primary/30 text-primary bg-primary/5";
+}
+
+function displayClassification(classification: string) {
+  return classification === "TOP SECRET" ? "TOP SECRET" : classification;
+}
+
+function FileRow({
+  file,
+  allowed,
+  selected,
+  onClick,
+}: {
+  file: CompanyFile;
+  allowed: boolean;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={allowed ? `Open ${file.name} — permission granted` : `Restricted: ${file.name} — clicking triggers a policy violation`}
+      onClick={onClick}
+      className={`w-full text-left flex items-center gap-2 rounded border p-2 transition-colors ${
+        selected
+          ? "border-primary bg-primary/10 shadow-[0_0_18px_rgba(0,255,136,0.08)]"
+          : allowed
+            ? "border-border/60 bg-background/30 hover:border-primary/50 hover:bg-primary/5"
+            : "border-red-500/20 bg-red-500/5 hover:border-red-500/60 hover:bg-red-500/10"
+      }`}
+    >
+      <div className={`shrink-0 ${allowed ? "text-muted-foreground" : "text-red-400"}`}>
+        {allowed ? <Lock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className={`truncate text-[10px] font-bold ${allowed ? "text-foreground" : "text-red-200"}`}>
+            {file.name}
+          </span>
+          <Badge variant="outline" className={`h-4 shrink-0 px-1 text-[7px] ${classificationStyle(file.classification)}`}>
+            {displayClassification(file.classification)}
+          </Badge>
+        </div>
+        <div className="mt-0.5 flex items-center gap-2 truncate text-[8px] text-muted-foreground">
+          <span>{file.department}</span>
+          <span>·</span>
+          <span>{file.sizeMb.toFixed(2)} MB</span>
+        </div>
+      </div>
+      <span className={`shrink-0 text-[7px] font-bold uppercase tracking-wider ${allowed ? "text-primary" : "text-red-400"}`}>
+        {allowed ? "OPEN" : "RESTRICTED"}
+      </span>
+    </button>
+  );
+}
+
+function AccessManagerModal({
+  open,
+  onClose,
+  policy,
+}: {
+  open: boolean;
+  onClose: () => void;
+  policy: FileAccessPolicy;
+}) {
   const queryClient = useQueryClient();
-  const { data: policy, isLoading } = useGetFileAccessPolicy({
-    query: { queryKey: getGetFileAccessPolicyQueryKey() },
-  });
   const evaluateMutation = useEvaluateFileAccess();
-
-  const [selectedUser, setSelectedUser] = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState(policy.users[0] ?? "");
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedAction, setSelectedAction] = useState<string>("READ");
-  const [device, setDevice] = useState<string>("laptop-corp-001");
-  const [application, setApplication] = useState<string>("FileExplorer");
-  const [bytesMb, setBytesMb] = useState<string>("1.5");
-  const [fileCount, setFileCount] = useState<string>("1");
-
+  const [search, setSearch] = useState("");
+  const [classification, setClassification] = useState("ALL");
+  const [department, setDepartment] = useState("ALL");
   const [lastDecision, setLastDecision] = useState<any>(null);
 
-  const handleEvaluate = () => {
-    if (!selectedUser || !selectedFile) return;
+  const profile = policy.profiles.find((candidate) => candidate.userName === selectedUser);
+  const containment = policy.containments.find((candidate) => candidate.userName === selectedUser);
+  const departments = useMemo(
+    () => ["ALL", ...Array.from(new Set(policy.files.map((file) => file.department))).sort()],
+    [policy.files],
+  );
+  const visibleFiles = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return policy.files.filter((file) => {
+      const matchesSearch = !query || `${file.name} ${file.description} ${file.path}`.toLowerCase().includes(query);
+      const matchesClassification = classification === "ALL" || file.classification === classification;
+      const matchesDepartment = department === "ALL" || file.department === department;
+      return matchesSearch && matchesClassification && matchesDepartment;
+    });
+  }, [classification, department, policy.files, search]);
+  const grantsForUser = policy.grants.filter((grant) => grant.userName === selectedUser);
+  const allowedCount = grantsForUser.filter((grant) => grant.granted).length;
+  const selectedFileData = policy.files.find((file) => file.id === selectedFile);
+  const selectedGrant = selectedFileData
+    ? policy.grants.find((grant) => grant.userName === selectedUser && grant.fileId === selectedFileData.id)
+    : undefined;
+  const recentAttempts = policy.attempts.filter((attempt) => attempt.userName === selectedUser).slice(0, 6);
 
+  const setUser = (value: string) => {
+    setSelectedUser(value);
+    setSelectedFile(null);
+    setLastDecision(null);
+  };
+
+  const openFile = (file: CompanyFile) => {
+    setSelectedFile(file.id);
     evaluateMutation.mutate(
       {
         data: {
           userName: selectedUser,
-          fileId: selectedFile,
+          fileId: file.id,
           action: selectedAction,
-          device: device || undefined,
-          application: application || undefined,
-          bytesMb: bytesMb ? Number(bytesMb) : undefined,
-          fileCount: fileCount ? Number(fileCount) : undefined,
+          device: profile?.currentIp ?? "WKSTN-ACCESS-MANAGER",
+          application: "BlackBox Access Manager",
+          bytesMb: selectedAction === "READ" ? file.sizeMb : file.sizeMb,
+          fileCount: 1,
         },
       },
       {
@@ -74,572 +173,189 @@ export function FileAccessPanel() {
           setLastDecision(decision);
           queryClient.invalidateQueries({ queryKey: getGetFileAccessPolicyQueryKey() });
         },
-      }
+      },
     );
   };
 
-  if (isLoading) {
-    return (
-      <Card className="border-border bg-card/50 backdrop-blur">
-        <CardHeader className="pb-1 pt-2 px-3">
-          <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-            <Shield className="w-3 h-3" /> File Access Policy Test
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-3 pb-3">
-          <div className="text-[9px] text-muted-foreground text-center py-4">
-            Loading policy data...
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!policy) {
-    return (
-      <Card className="border-border bg-card/50 backdrop-blur">
-        <CardHeader className="pb-1 pt-2 px-3">
-          <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-            <Shield className="w-3 h-3" /> File Access Policy Test
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-3 pb-3">
-          <div className="text-[9px] text-destructive text-center py-4">
-            Policy data unavailable
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const selectedFileData = policy.files.find((f) => f.id === selectedFile);
-  const selectedUserContainment = policy.containments.find(
-    (c) => c.userName === selectedUser && c.active
-  );
-  const selectedUserGrant = policy.grants.find(
-    (g) => g.userName === selectedUser && g.fileId === selectedFile
-  );
-  const recentAttempts = policy.attempts
-    .filter((a) => a.userName === selectedUser || a.fileId === selectedFile)
-    .slice(0, 5);
-
   return (
-    <div className="space-y-3">
-      <Card className="border-border bg-card/50 backdrop-blur">
-        <CardHeader className="pb-1 pt-2 px-3">
-          <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-            <Shield className="w-3 h-3" /> File Access Policy Test
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-3 pb-3 space-y-3">
-          {/* User + File Selection */}
-          <div className="grid grid-cols-2 gap-2">
+    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-6xl overflow-hidden border-primary/30 bg-[#080b0d]/[.98] p-0 text-foreground shadow-[0_0_70px_rgba(0,255,136,0.12)]">
+        <DialogHeader className="border-b border-primary/15 px-5 pb-3 pt-5">
+          <div className="flex items-start justify-between gap-3 pr-7">
+            <div>
+              <DialogTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.18em]">
+                <Shield className="h-4 w-4 text-primary" />
+                Enterprise Access Manager
+              </DialogTitle>
+              <DialogDescription className="mt-1 text-[9px] uppercase tracking-wider text-muted-foreground">
+                Zero Trust file explorer · role-based permissions · behavioral monitoring
+              </DialogDescription>
+            </div>
+            <Badge variant="outline" className="border-primary/30 text-[8px] text-primary">
+              LIVE POLICY
+            </Badge>
+          </div>
+        </DialogHeader>
+
+        <div className="grid min-h-0 grid-cols-12 gap-3 overflow-y-auto p-4">
+          <aside className="col-span-12 space-y-3 lg:col-span-3">
             <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                User
-              </Label>
-              <Select value={selectedUser} onValueChange={setSelectedUser}>
-                <SelectTrigger className="h-7 text-[9px] bg-background/50">
+              <Label className="text-[8px] uppercase tracking-widest text-muted-foreground">Identity</Label>
+              <Select value={selectedUser} onValueChange={setUser}>
+                <SelectTrigger className="h-8 bg-background/60 text-[10px]">
                   <SelectValue placeholder="Select user" />
                 </SelectTrigger>
                 <SelectContent>
-                  {policy.users.map((user) => (
-                    <SelectItem key={user} value={user} className="text-[9px]">
-                      {user}
-                    </SelectItem>
-                  ))}
+                  {policy.users.map((user) => {
+                    const candidate = policy.profiles.find((item) => item.userName === user);
+                    return <SelectItem key={user} value={user} className="text-[10px]">{candidate?.displayName ?? user}</SelectItem>;
+                  })}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                File
-              </Label>
-              <Select value={selectedFile} onValueChange={setSelectedFile}>
-                <SelectTrigger className="h-7 text-[9px] bg-background/50">
-                  <SelectValue placeholder="Select file" />
-                </SelectTrigger>
-                <SelectContent>
-                  {policy.files.map((file) => (
-                    <SelectItem key={file.id} value={file.id} className="text-[9px]">
-                      {file.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+            <div className={`rounded border p-3 ${containment?.active ? "border-red-500/50 bg-red-500/10" : "border-primary/20 bg-primary/5"}`}>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <div className="min-w-0">
+                  <div className="truncate text-[11px] font-bold uppercase">{profile?.displayName ?? selectedUser}</div>
+                  <div className="truncate text-[8px] text-muted-foreground">{profile?.role ?? "Role profile"} · {profile?.department ?? "Unknown department"}</div>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[8px]">
+                <div><span className="text-muted-foreground">TRUST</span><div className="text-lg font-bold text-primary">{profile?.trustScore.toFixed(0) ?? "—"}</div></div>
+                <div><span className="text-muted-foreground">STATUS</span><div className={`mt-1 font-bold ${containment?.active ? "text-red-400" : "text-green-400"}`}>{containment?.active ? "CONTAINED" : profile?.riskStatus ?? "NORMAL"}</div></div>
+              </div>
+              <div className="mt-3 space-y-1 border-t border-border/50 pt-2 text-[8px] text-muted-foreground">
+                <div className="flex items-center gap-1.5"><Clock3 className="h-3 w-3" /> Last login: {profile ? new Date(profile.lastLogin).toLocaleString() : "—"}</div>
+                <div className="flex items-center gap-1.5"><Globe2 className="h-3 w-3" /> IP: {profile?.currentIp ?? "—"}</div>
+                <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {profile?.currentLocation ?? "—"}</div>
+              </div>
+            </div>
+
+            <div className="rounded border border-border/60 bg-background/30 p-3 text-[8px]">
+              <div className="mb-2 flex items-center justify-between uppercase tracking-widest text-muted-foreground">
+                <span>Permissions</span><KeyRound className="h-3 w-3" />
+              </div>
+              <div className="flex justify-between"><span>Allowed files</span><b className="text-primary">{allowedCount}</b></div>
+              <div className="mt-1 flex justify-between"><span>Restricted files</span><b className="text-red-400">{Math.max(0, policy.files.length - allowedCount)}</b></div>
+              <div className="mt-1 flex justify-between"><span>Current session</span><b className="text-green-400">ACTIVE</b></div>
+            </div>
+          </aside>
+
+          <section className="col-span-12 min-h-0 space-y-2 lg:col-span-5">
+            <div className="flex flex-wrap gap-2">
+              <div className="relative min-w-[180px] flex-1">
+                <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search files..." className="h-7 pl-7 text-[9px] bg-background/50" />
+              </div>
+              <Select value={classification} onValueChange={setClassification}>
+                <SelectTrigger className="h-7 w-[145px] text-[9px]"><Filter className="mr-1 h-3 w-3" /><SelectValue /></SelectTrigger>
+                <SelectContent>{CLASSIFICATIONS.map((item) => <SelectItem key={item} value={item} className="text-[9px]">{item}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={department} onValueChange={setDepartment}>
+                <SelectTrigger className="h-7 w-[145px] text-[9px]"><SelectValue /></SelectTrigger>
+                <SelectContent>{departments.map((item) => <SelectItem key={item} value={item} className="text-[9px]">{item}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-          </div>
+            <div className="flex items-center justify-between text-[8px] uppercase tracking-widest text-muted-foreground">
+              <span>Company file explorer</span><span>{visibleFiles.length} / {policy.files.length} files</span>
+            </div>
+            <div className="max-h-[58vh] space-y-1 overflow-y-auto pr-1">
+              {visibleFiles.map((file) => {
+                const grant = policy.grants.find((candidate) => candidate.userName === selectedUser && candidate.fileId === file.id);
+                return <FileRow key={file.id} file={file} allowed={Boolean(grant?.granted)} selected={selectedFile === file.id} onClick={() => openFile(file)} />;
+              })}
+              {!visibleFiles.length && <div className="rounded border border-dashed border-border p-8 text-center text-[9px] text-muted-foreground">No files match the active filters.</div>}
+            </div>
+          </section>
 
-          {/* Action + Context */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                Action
-              </Label>
-              <Select value={selectedAction} onValueChange={setSelectedAction}>
-                <SelectTrigger className="h-7 text-[9px] bg-background/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ACTION_OPTIONS.map((action) => (
-                    <SelectItem key={action} value={action} className="text-[9px]">
-                      {action}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <aside className="col-span-12 space-y-3 lg:col-span-4">
+            <div className="rounded border border-border/60 bg-background/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[8px] uppercase tracking-widest text-muted-foreground">Interaction policy</span>
+                <Select value={selectedAction} onValueChange={setSelectedAction}>
+                  <SelectTrigger className="h-6 w-[105px] text-[8px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ACTION_OPTIONS.map((action) => <SelectItem key={action} value={action} className="text-[9px]">{action}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="text-[8px] text-muted-foreground">Select an action, then click any file. Restricted files remain visible for policy transparency and trigger the existing trust/event pipeline when tested.</div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                Device
-              </Label>
-              <Input
-                value={device}
-                onChange={(e) => setDevice(e.target.value)}
-                className="h-7 text-[9px] bg-background/50"
-                placeholder="laptop-corp-001"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                Application
-              </Label>
-              <Input
-                value={application}
-                onChange={(e) => setApplication(e.target.value)}
-                className="h-7 text-[9px] bg-background/50"
-                placeholder="FileExplorer"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                MB
-              </Label>
-              <Input
-                type="number"
-                step="0.1"
-                value={bytesMb}
-                onChange={(e) => setBytesMb(e.target.value)}
-                className="h-7 text-[9px] bg-background/50 tabular-nums"
-                placeholder="1.5"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-[8px] uppercase tracking-wider text-muted-foreground">
-                File Count
-              </Label>
-              <Input
-                type="number"
-                value={fileCount}
-                onChange={(e) => setFileCount(e.target.value)}
-                className="h-7 text-[9px] bg-background/50 tabular-nums"
-                placeholder="1"
-              />
-            </div>
-          </div>
-
-          <Button
-            onClick={handleEvaluate}
-            disabled={!selectedUser || !selectedFile || evaluateMutation.isPending}
-            className="w-full h-8 text-[10px] font-bold tracking-widest uppercase bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Activity className="w-3 h-3 mr-1.5" />
-            {evaluateMutation.isPending ? "EVALUATING..." : "EVALUATE ACCESS"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* User Trust / Containment State */}
-      {selectedUser && (
-        <Card className="border-border bg-card/50 backdrop-blur">
-          <CardHeader className="pb-1 pt-2 px-3">
-            <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-              <User className="w-3 h-3" /> User State: {selectedUser}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 space-y-2">
-            {selectedUserContainment ? (
-              <div className="p-2 bg-destructive/10 border border-destructive/30 rounded space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-bold uppercase text-destructive">
-                    CONTAINED
-                  </span>
-                  <Badge
-                    variant="destructive"
-                    className="text-[7px] h-4 px-1 animate-pulse"
-                  >
-                    ACTIVE
-                  </Badge>
-                </div>
-                <div className="text-[8px] text-muted-foreground">
-                  Reason: {selectedUserContainment.reason}
-                </div>
-                <div className="text-[8px] text-muted-foreground">
-                  Severed: {selectedUserContainment.severedConnections}
-                </div>
-                {selectedUserContainment.startedAt && (
-                  <div className="text-[8px] text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-2.5 h-2.5" />
-                    {new Date(selectedUserContainment.startedAt).toLocaleString()}
+            {selectedFileData && (
+              <div className="rounded border border-primary/25 bg-primary/5 p-3">
+                <div className="flex items-start gap-2">
+                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <div className="truncate text-[10px] font-bold">{selectedFileData.name}</div>
+                    <div className="mt-0.5 break-all text-[8px] text-muted-foreground">{selectedFileData.path}</div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-2 bg-primary/5 border border-primary/30 rounded">
-                <div className="text-[9px] font-bold uppercase text-primary">
-                  NOT CONTAINED
                 </div>
-                <div className="text-[8px] text-muted-foreground">
-                  User operates with standard trust evaluation
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[8px]">
+                  <div><span className="text-muted-foreground">OWNER</span><div className="font-bold">{selectedFileData.owner}</div></div>
+                  <div><span className="text-muted-foreground">SIZE</span><div className="font-bold">{selectedFileData.sizeMb.toFixed(2)} MB</div></div>
+                  <div><span className="text-muted-foreground">DEPARTMENT</span><div className="font-bold">{selectedFileData.department}</div></div>
+                  <div><span className="text-muted-foreground">GRANT</span><div className={`font-bold ${selectedGrant?.granted ? "text-primary" : "text-red-400"}`}>{selectedGrant?.accessLevel ?? "DENIED"}</div></div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* File Classification + Grant */}
-      {selectedFileData && (
-        <Card className="border-border bg-card/50 backdrop-blur">
-          <CardHeader className="pb-1 pt-2 px-3">
-            <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-              <FileText className="w-3 h-3" /> File: {selectedFileData.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 space-y-2">
-            <div className="grid grid-cols-2 gap-2 text-[8px]">
-              <div>
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Classification
-                </span>
-                <div className="font-bold text-primary mt-0.5">
-                  {selectedFileData.classification}
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Department
-                </span>
-                <div className="font-bold text-foreground mt-0.5">
-                  {selectedFileData.department}
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Owner
-                </span>
-                <div className="font-bold text-foreground mt-0.5">
-                  {selectedFileData.owner}
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Size
-                </span>
-                <div className="font-bold text-foreground mt-0.5 tabular-nums">
-                  {selectedFileData.sizeMb.toFixed(2)} MB
-                </div>
-              </div>
-            </div>
-
-            {selectedUser && selectedUserGrant && (
-              <div className="pt-1 border-t border-border/50">
-                <div className="text-[8px] text-muted-foreground uppercase tracking-wider mb-1">
-                  Grant Level
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-[9px] font-bold text-primary">
-                    {selectedUserGrant.accessLevel}
-                  </div>
-                  <Badge
-                    variant={selectedUserGrant.granted ? "outline" : "destructive"}
-                    className="text-[7px] h-4 px-1"
-                  >
-                    {selectedUserGrant.granted ? "GRANTED" : "DENIED"}
-                  </Badge>
-                </div>
-                <div className="text-[8px] text-muted-foreground mt-0.5">
-                  Role: {selectedUserGrant.role}
-                </div>
+                <p className="mt-3 border-t border-border/50 pt-2 text-[8px] text-muted-foreground">{selectedFileData.description}</p>
               </div>
             )}
 
-            {selectedUser && !selectedUserGrant && (
-              <div className="pt-1 border-t border-border/50">
-                <div className="text-[8px] text-yellow-500 uppercase font-bold">
-                  NO EXPLICIT GRANT
+            {lastDecision && (
+              <div className={`rounded border p-3 ${lastDecision.allowed ? "border-green-500/50 bg-green-500/10" : "border-red-500/60 bg-red-500/10"}`}>
+                <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${lastDecision.allowed ? "text-green-400" : "text-red-400"}`}>
+                  {lastDecision.allowed ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  {lastDecision.allowed ? "File opened" : "Access denied"}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Decision Result */}
-      {lastDecision && (
-        <Card
-          className={`border backdrop-blur ${
-            lastDecision.allowed
-              ? "border-green-500/50 bg-green-500/5"
-              : "border-destructive/50 bg-destructive/5"
-          }`}
-        >
-          <CardHeader className="pb-1 pt-2 px-3">
-            <CardTitle className="text-[9px] uppercase flex items-center gap-2">
-              {lastDecision.allowed ? (
-                <CheckCircle2 className="w-3 h-3 text-green-500" />
-              ) : (
-                <XCircle className="w-3 h-3 text-destructive" />
-              )}
-              <span
-                className={
-                  lastDecision.allowed ? "text-green-500" : "text-destructive"
-                }
-              >
-                {lastDecision.allowed ? "ACCESS ALLOWED" : "ACCESS DENIED"}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 space-y-2">
-            <div className="text-[9px] text-foreground">{lastDecision.message}</div>
-
-            {lastDecision.indicators && lastDecision.indicators.length > 0 && (
-              <div className="space-y-1">
-                <div className="text-[8px] text-muted-foreground uppercase tracking-wider">
-                  Indicators
+                <div className="mt-2 text-[8px]">{lastDecision.message}</div>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border/50 pt-2 text-[8px]">
+                  <div><span className="text-muted-foreground">THREAT</span><div className="font-bold text-red-400">{lastDecision.attempt.effectiveThreatScore.toFixed(1)}</div></div>
+                  <div><span className="text-muted-foreground">TRUST BEFORE</span><div className="font-bold text-primary">{lastDecision.attempt.trustBefore.toFixed(1)}</div></div>
+                  <div><span className="text-muted-foreground">TRUST AFTER</span><div className="font-bold text-yellow-400">{lastDecision.attempt.trustAfter.toFixed(1)}</div></div>
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {lastDecision.indicators.map((ind: string, i: number) => (
-                    <Badge
-                      key={i}
-                      variant="outline"
-                      className="text-[7px] h-4 px-1 border-yellow-500/50 text-yellow-500"
-                    >
-                      {ind}
-                    </Badge>
-                  ))}
-                </div>
+                {lastDecision.indicators?.length > 0 && <div className="mt-2 flex flex-wrap gap-1">{lastDecision.indicators.map((indicator: string) => <Badge key={indicator} variant="outline" className="h-4 border-red-500/40 px-1 text-[7px] text-red-400">{indicator}</Badge>)}</div>}
+                {lastDecision.contained && <div className="mt-2 text-[8px] font-bold uppercase text-red-400">User contained · trust paths severed</div>}
               </div>
             )}
 
-            {lastDecision.attempt && (
-              <div className="grid grid-cols-3 gap-2 text-[8px] pt-1 border-t border-border/50">
-                <div>
-                  <span className="text-muted-foreground uppercase tracking-wider">
-                    Threat
-                  </span>
-                  <div className="font-bold text-destructive tabular-nums mt-0.5">
-                    {lastDecision.attempt.effectiveThreatScore.toFixed(1)}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground uppercase tracking-wider">
-                    Trust Before
-                  </span>
-                  <div className="font-bold text-primary tabular-nums mt-0.5">
-                    {lastDecision.attempt.trustBefore.toFixed(1)}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground uppercase tracking-wider">
-                    Trust After
-                  </span>
-                  <div
-                    className={`font-bold tabular-nums mt-0.5 ${
-                      lastDecision.attempt.trustAfter <
-                      lastDecision.attempt.trustBefore
-                        ? "text-yellow-500"
-                        : "text-primary"
-                    }`}
-                  >
-                    {lastDecision.attempt.trustAfter.toFixed(1)}
-                  </div>
-                </div>
+            <div className="rounded border border-border/60 bg-background/30 p-3">
+              <div className="mb-2 flex items-center gap-2 text-[8px] uppercase tracking-widest text-muted-foreground"><Activity className="h-3 w-3" /> Recent user activity</div>
+              <div className="space-y-1.5">
+                {recentAttempts.map((attempt) => <div key={attempt.id} className="flex items-center justify-between gap-2 text-[8px]"><span className="truncate text-muted-foreground">{policy.files.find((file) => file.id === attempt.fileId)?.name ?? attempt.fileId}</span><Badge variant={attempt.allowed ? "outline" : "destructive"} className="h-4 px-1 text-[7px]">{attempt.allowed ? "ALLOW" : "DENY"}</Badge></div>)}
+                {!recentAttempts.length && <div className="text-[8px] text-muted-foreground">No access attempts for this identity.</div>}
               </div>
-            )}
+            </div>
+          </aside>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-            {lastDecision.contained && (
-              <div className="pt-1 border-t border-border/50">
-                <div className="flex items-center gap-1.5 text-destructive">
-                  <Lock className="w-3 h-3" />
-                  <span className="text-[9px] font-bold uppercase">
-                    USER NOW CONTAINED
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+export function FileAccessPanel() {
+  const [open, setOpen] = useState(false);
+  const { data: policy, isLoading } = useGetFileAccessPolicy({
+    query: { queryKey: getGetFileAccessPolicyQueryKey() },
+  });
 
-      {/* Recent Attempts */}
-      {recentAttempts.length > 0 && (
-        <Card className="border-border bg-card/50 backdrop-blur">
-          <CardHeader className="pb-1 pt-2 px-3">
-            <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-              <Clock className="w-3 h-3" /> Recent Attempts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 space-y-1">
-            {recentAttempts.map((attempt) => (
-              <div
-                key={attempt.id}
-                className="text-[8px] p-1.5 border-b border-border/50 flex items-center justify-between hover:bg-background/30 transition-colors"
-              >
-                <div className="flex-1 space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-foreground">
-                      {attempt.userName}
-                    </span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="text-primary truncate max-w-[100px]">
-                      {policy.files.find((f) => f.id === attempt.fileId)?.name ||
-                        attempt.fileId}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <span className="uppercase tracking-wider">
-                      {attempt.action}
-                    </span>
-                    <span>·</span>
-                    <span>{new Date(attempt.createdAt).toLocaleTimeString()}</span>
-                  </div>
-                </div>
-                <Badge
-                  variant={attempt.allowed ? "outline" : "destructive"}
-                  className="text-[7px] h-4 px-1 shrink-0"
-                >
-                  {attempt.allowed ? "ALLOW" : "DENY"}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Scoring Formula Constants */}
-      <Card className="border-border bg-card/50 backdrop-blur">
-        <CardHeader className="pb-1 pt-2 px-3">
-          <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
-            <Database className="w-3 h-3" /> Scoring Formula
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-3 pb-3 space-y-2">
-          <div className="grid grid-cols-4 gap-2 text-[8px]">
-            <div>
-              <span className="text-muted-foreground uppercase tracking-wider">
-                Gamma
-              </span>
-              <div className="font-bold text-primary tabular-nums mt-0.5">
-                {policy.scoring.gamma.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground uppercase tracking-wider">
-                Beta
-              </span>
-              <div className="font-bold text-primary tabular-nums mt-0.5">
-                {policy.scoring.beta.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground uppercase tracking-wider">
-                Kappa
-              </span>
-              <div className="font-bold text-primary tabular-nums mt-0.5">
-                {policy.scoring.kappa.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground uppercase tracking-wider">
-                Reward ηr
-              </span>
-              <div className="font-bold text-green-500 tabular-nums mt-0.5">
-                {policy.scoring.rewardRate.toFixed(2)}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-1 border-t border-border/50 space-y-1">
-            <div className="text-[8px] text-muted-foreground uppercase tracking-wider">
-              Thresholds
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-[8px]">
-              <div>
-                <span className="text-muted-foreground">Trust Baseline</span>
-                <div className="font-bold text-primary tabular-nums">
-                  {policy.scoring.trustBaseline.toFixed(1)}
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Containment</span>
-                <div className="font-bold text-destructive tabular-nums">
-                  {policy.scoring.trustContainmentThreshold.toFixed(1)}
-                </div>
-              </div>
-            </div>
-            <div className="text-[8px]">
-              <span className="text-muted-foreground">Effective Threat</span>
-              <div className="font-bold text-yellow-500 tabular-nums">
-                {policy.scoring.effectiveThreatThreshold.toFixed(1)}
-              </div>
-            </div>
-            <div className="text-[8px]">
-              <span className="text-muted-foreground">Idle Drift λ</span>
-              <div className="font-bold text-yellow-500 tabular-nums">
-                {(policy.scoring.lambda ?? 0).toFixed(2)}
-              </div>
-            </div>
-          </div>
-
-          {Object.keys(policy.scoring.penaltyRates).length > 0 && (
-            <div className="pt-1 border-t border-border/50 space-y-1">
-              <div className="text-[8px] text-muted-foreground uppercase tracking-wider">
-                Penalty Rates
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {Object.entries(policy.scoring.penaltyRates).map(([key, val]) => (
-                  <Badge
-                    key={key}
-                    variant="outline"
-                    className="text-[7px] h-4 px-1 border-yellow-500/30 font-mono"
-                  >
-                    {key}: {val}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {Object.keys(policy.scoring.criticalityCosts).length > 0 && (
-            <div className="pt-1 border-t border-border/50 space-y-1">
-              <div className="text-[8px] text-muted-foreground uppercase tracking-wider">
-                Criticality Costs
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {Object.entries(policy.scoring.criticalityCosts).map(
-                  ([key, val]) => (
-                    <Badge
-                      key={key}
-                      variant="outline"
-                      className="text-[7px] h-4 px-1 border-destructive/30 font-mono"
-                    >
-                      {key}: {val}
-                    </Badge>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="w-full shrink-0 rounded border border-border bg-card/50 p-3 text-left backdrop-blur transition-colors hover:border-primary/60 hover:bg-primary/5"
+      >
+        <div className="flex items-center gap-2">
+          <Shield className="h-3 w-3 text-primary" />
+          <span className="text-[9px] font-bold uppercase tracking-wider text-primary">Enterprise Access Manager</span>
+          <span className="ml-auto text-[8px] text-muted-foreground">OPEN →</span>
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[8px] text-muted-foreground">
+          <span>{isLoading ? "Loading policy..." : `${policy?.files.length ?? 0} files · ${policy?.profiles.length ?? 0} identities`}</span>
+          <span className="text-primary">ROLE-BASED IAM</span>
+        </div>
+      </button>
+      {policy && <AccessManagerModal open={open} onClose={() => setOpen(false)} policy={policy} />}
+    </>
   );
 }
