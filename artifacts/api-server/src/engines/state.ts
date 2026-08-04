@@ -60,7 +60,7 @@ class BlackBoxState {
     ceo: 99,
     cfo: 99,
     unknown_user: 70,
-    attacker: 100,
+    attacker: 30,
   };
 
   simulationRunning = false;
@@ -176,7 +176,7 @@ class BlackBoxState {
       ceo: 99,
       cfo: 99,
       unknown_user: 70,
-      attacker: 100,
+      attacker: 30,
     };
     this.simulationRunning = false;
     this.currentIncidentId = null;

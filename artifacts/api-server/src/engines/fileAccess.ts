@@ -155,7 +155,7 @@ export async function seedFileAccessData() {
     ["ceo", 99, "NORMAL"],
     ["cfo", 99, "NORMAL"],
     ["unknown_user", 70, "DEGRADED"],
-    ["attacker", 100, "NORMAL"],
+    ["attacker", 30, "COMPROMISED"],
   ] as const;
   for (const [name, trustScore, riskState] of seededUserProfiles) {
     const [existingUser] = await db
@@ -254,9 +254,6 @@ export async function seedFileAccessData() {
       riskStatus,
     }).onConflictDoNothing();
   }
-  await db.update(companyUserProfilesTable)
-    .set({ riskStatus: "TRUSTED" })
-    .where(eq(companyUserProfilesTable.userName, "attacker"));
   logger.info({ files: storedFiles.length, users: userNames.length }, "File access dataset seeded");
 }
 
