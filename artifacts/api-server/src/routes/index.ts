@@ -13,6 +13,7 @@ import governanceRouter from "./governance";
 import trustRouter from "./trust";
 import narrativeRouter from "./narrative";
 import identityRouter from "./identity";
+import fileAccessRouter from "./fileAccess";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(governanceRouter);
 router.use(trustRouter);
 router.use(narrativeRouter);
 router.use(identityRouter);
+router.use(fileAccessRouter);
 
 export default router;

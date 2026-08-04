@@ -30,6 +30,8 @@ tags:
     description: System users and attackers
   - name: trust
     description: Trust graph
+  - name: file-access
+    description: File IAM policy and trust-adaptive access decisions
 paths:
   /healthz:
     get:
@@ -477,6 +479,40 @@ paths:
                 items:
                   $ref: "#/components/schemas/ClassifiedAsset"
 
+  /file-access/policy:
+    get:
+      operationId: getFileAccessPolicy
+      tags: [file-access]
+      summary: Get company file registry, per-user IAM grants, containment, and scoring rules
+      responses:
+        "200":
+          description: File access policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileAccessPolicy"
+
+  /file-access/attempt:
+    post:
+      operationId: evaluateFileAccess
+      tags: [file-access]
+      summary: Evaluate a file access attempt with trust-adaptive threat scoring
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileAccessAttemptInput"
+      responses:
+        "200":
+          description: Access decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileAccessDecision"
+        "404":
+          description: File not found
+
   /identity/status:
     get:
       operationId: getIdentityResetStatus
@@ -783,6 +819,142 @@ components:
         totalActions:     { type: integer }
         lastRunAt:        { type: ["string", "null"] }
         currentAction:    { type: ["string", "null"] }
+
+    CompanyFile:
+      type: object
+      required: [id, name, path, department, classification, sizeMb, owner, description]
+      properties:
+        id:             { type: string }
+        name:           { type: string }
+        path:           { type: string }
+        department:     { type: string }
+        classification: { type: string }
+        sizeMb:         { type: number }
+        owner:          { type: string }
+        description:    { type: string }
+        createdAt:      { type: string }
+
+    FileAccessGrant:
+      type: object
+      required: [id, fileId, userName, role, accessLevel, granted]
+      properties:
+        id:           { type: string }
+        fileId:       { type: string }
+        userName:     { type: string }
+        role:         { type: string }
+        accessLevel:  { type: string }
+        granted:      { type: boolean }
+        createdAt:    { type: string }
+
+    FileUserContainment:
+      type: object
+      required: [userName, active, reason, severedConnections]
+      properties:
+        userName:            { type: string }
+        active:              { type: boolean }
+        reason:              { type: string }
+        severedConnections:
+          type: string
+        startedAt:           { type: ["string", "null"] }
+        liftedAt:            { type: ["string", "null"] }
+
+    FileAccessAttempt:
+      type: object
+      required: [id, userName, fileId, action, allowed, device, application, bytesMb, fileCount, indicators, threatScore, effectiveThreatScore, trustBefore, trustAfter, contained, createdAt]
+      properties:
+        id:                    { type: string }
+        userName:              { type: string }
+        fileId:                { type: string }
+        action:                { type: string }
+        allowed:               { type: boolean }
+        violationType:         { type: ["string", "null"] }
+        device:                { type: string }
+        application:           { type: string }
+        bytesMb:               { type: number }
+        fileCount:             { type: integer }
+        indicators:            { type: string }
+        threatScore:           { type: number }
+        effectiveThreatScore:  { type: number }
+        trustBefore:           { type: number }
+        trustAfter:            { type: number }
+        contained:             { type: boolean }
+        createdAt:             { type: string }
+
+    FileAccessAttemptInput:
+      type: object
+      required: [userName, fileId, action]
+      properties:
+        userName:    { type: string }
+        fileId:      { type: string }
+        action:      { type: string }
+        device:      { type: string }
+        application: { type: string }
+        bytesMb:     { type: number }
+        fileCount:   { type: integer }
+
+    FileAccessDecision:
+      type: object
+      required: [allowed, file, grant, attempt, indicators, contained, message]
+      properties:
+        allowed:  { type: boolean }
+        file:
+          $ref: "#/components/schemas/CompanyFile"
+        grant:
+          oneOf:
+            - $ref: "#/components/schemas/FileAccessGrant"
+            - type: "null"
+        attempt:
+          $ref: "#/components/schemas/FileAccessAttempt"
+        indicators:
+          type: array
+          items: { type: string }
+        contained: { type: boolean }
+        message: { type: string }
+
+    FileAccessScoring:
+      type: object
+      required: [trustBaseline, trustContainmentThreshold, effectiveThreatThreshold, gamma, beta, kappa, rewardRate, lambda, penaltyRates, criticalityCosts]
+      properties:
+        trustBaseline:               { type: number }
+        trustContainmentThreshold:   { type: number }
+        effectiveThreatThreshold:   { type: number }
+        gamma:                       { type: number }
+        beta:                        { type: number }
+        kappa:                       { type: number }
+        rewardRate:                  { type: number }
+        lambda:                      { type: number }
+        penaltyRates:
+          type: object
+          additionalProperties: { type: number }
+        criticalityCosts:
+          type: object
+          additionalProperties: { type: number }
+
+    FileAccessPolicy:
+      type: object
+      required: [files, grants, containments, attempts, users, scoring]
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompanyFile"
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileAccessGrant"
+        containments:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileUserContainment"
+        attempts:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileAccessAttempt"
+        users:
+          type: array
+          items: { type: string }
+        scoring:
+          $ref: "#/components/schemas/FileAccessScoring"
 
     CommandCenterStatus:
       type: object

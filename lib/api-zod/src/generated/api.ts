@@ -424,6 +424,133 @@ export const ListClassifiedAssetsResponse = zod.array(ListClassifiedAssetsRespon
 
 
 /**
+ * @summary Get company file registry, per-user IAM grants, containment, and scoring rules
+ */
+export const GetFileAccessPolicyResponse = zod.object({
+  "files": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "path": zod.string(),
+  "department": zod.string(),
+  "classification": zod.string(),
+  "sizeMb": zod.number(),
+  "owner": zod.string(),
+  "description": zod.string(),
+  "createdAt": zod.string().optional()
+})),
+  "grants": zod.array(zod.object({
+  "id": zod.string(),
+  "fileId": zod.string(),
+  "userName": zod.string(),
+  "role": zod.string(),
+  "accessLevel": zod.string(),
+  "granted": zod.boolean(),
+  "createdAt": zod.string().optional()
+})),
+  "containments": zod.array(zod.object({
+  "userName": zod.string(),
+  "active": zod.boolean(),
+  "reason": zod.string(),
+  "severedConnections": zod.string(),
+  "startedAt": zod.string().nullish(),
+  "liftedAt": zod.string().nullish()
+})),
+  "attempts": zod.array(zod.object({
+  "id": zod.string(),
+  "userName": zod.string(),
+  "fileId": zod.string(),
+  "action": zod.string(),
+  "allowed": zod.boolean(),
+  "violationType": zod.string().nullish(),
+  "device": zod.string(),
+  "application": zod.string(),
+  "bytesMb": zod.number(),
+  "fileCount": zod.number(),
+  "indicators": zod.string(),
+  "threatScore": zod.number(),
+  "effectiveThreatScore": zod.number(),
+  "trustBefore": zod.number(),
+  "trustAfter": zod.number(),
+  "contained": zod.boolean(),
+  "createdAt": zod.string()
+})),
+  "users": zod.array(zod.string()),
+  "scoring": zod.object({
+  "trustBaseline": zod.number(),
+  "trustContainmentThreshold": zod.number(),
+  "effectiveThreatThreshold": zod.number(),
+  "gamma": zod.number(),
+  "beta": zod.number(),
+  "kappa": zod.number(),
+  "rewardRate": zod.number(),
+  "lambda": zod.number(),
+  "penaltyRates": zod.record(zod.string(), zod.number()),
+  "criticalityCosts": zod.record(zod.string(), zod.number())
+})
+})
+
+
+/**
+ * @summary Evaluate a file access attempt with trust-adaptive threat scoring
+ */
+export const EvaluateFileAccessBody = zod.object({
+  "userName": zod.string(),
+  "fileId": zod.string(),
+  "action": zod.string(),
+  "device": zod.string().optional(),
+  "application": zod.string().optional(),
+  "bytesMb": zod.number().optional(),
+  "fileCount": zod.number().optional()
+})
+
+export const EvaluateFileAccessResponse = zod.object({
+  "allowed": zod.boolean(),
+  "file": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "path": zod.string(),
+  "department": zod.string(),
+  "classification": zod.string(),
+  "sizeMb": zod.number(),
+  "owner": zod.string(),
+  "description": zod.string(),
+  "createdAt": zod.string().optional()
+}),
+  "grant": zod.union([zod.object({
+  "id": zod.string(),
+  "fileId": zod.string(),
+  "userName": zod.string(),
+  "role": zod.string(),
+  "accessLevel": zod.string(),
+  "granted": zod.boolean(),
+  "createdAt": zod.string().optional()
+}),zod.null()]),
+  "attempt": zod.object({
+  "id": zod.string(),
+  "userName": zod.string(),
+  "fileId": zod.string(),
+  "action": zod.string(),
+  "allowed": zod.boolean(),
+  "violationType": zod.string().nullish(),
+  "device": zod.string(),
+  "application": zod.string(),
+  "bytesMb": zod.number(),
+  "fileCount": zod.number(),
+  "indicators": zod.string(),
+  "threatScore": zod.number(),
+  "effectiveThreatScore": zod.number(),
+  "trustBefore": zod.number(),
+  "trustAfter": zod.number(),
+  "contained": zod.boolean(),
+  "createdAt": zod.string()
+}),
+  "indicators": zod.array(zod.string()),
+  "contained": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Current Identity Reset Protocol status
  */
 export const GetIdentityResetStatusResponse = zod.object({

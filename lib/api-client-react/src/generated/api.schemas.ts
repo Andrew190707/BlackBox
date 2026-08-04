@@ -242,6 +242,106 @@ export interface IdentityResetStatus {
   currentAction?: string | null;
 }
 
+export interface CompanyFile {
+  id: string;
+  name: string;
+  path: string;
+  department: string;
+  classification: string;
+  sizeMb: number;
+  owner: string;
+  description: string;
+  createdAt?: string;
+}
+
+export interface FileAccessGrant {
+  id: string;
+  fileId: string;
+  userName: string;
+  role: string;
+  accessLevel: string;
+  granted: boolean;
+  createdAt?: string;
+}
+
+export interface FileUserContainment {
+  userName: string;
+  active: boolean;
+  reason: string;
+  severedConnections: string;
+  /** @nullable */
+  startedAt?: string | null;
+  /** @nullable */
+  liftedAt?: string | null;
+}
+
+export interface FileAccessAttempt {
+  id: string;
+  userName: string;
+  fileId: string;
+  action: string;
+  allowed: boolean;
+  /** @nullable */
+  violationType?: string | null;
+  device: string;
+  application: string;
+  bytesMb: number;
+  fileCount: number;
+  indicators: string;
+  threatScore: number;
+  effectiveThreatScore: number;
+  trustBefore: number;
+  trustAfter: number;
+  contained: boolean;
+  createdAt: string;
+}
+
+export interface FileAccessAttemptInput {
+  userName: string;
+  fileId: string;
+  action: string;
+  device?: string;
+  application?: string;
+  bytesMb?: number;
+  fileCount?: number;
+}
+
+export interface FileAccessDecision {
+  allowed: boolean;
+  file: CompanyFile;
+  grant: FileAccessGrant | null;
+  attempt: FileAccessAttempt;
+  indicators: string[];
+  contained: boolean;
+  message: string;
+}
+
+export type FileAccessScoringPenaltyRates = {[key: string]: number};
+
+export type FileAccessScoringCriticalityCosts = {[key: string]: number};
+
+export interface FileAccessScoring {
+  trustBaseline: number;
+  trustContainmentThreshold: number;
+  effectiveThreatThreshold: number;
+  gamma: number;
+  beta: number;
+  kappa: number;
+  rewardRate: number;
+  lambda: number;
+  penaltyRates: FileAccessScoringPenaltyRates;
+  criticalityCosts: FileAccessScoringCriticalityCosts;
+}
+
+export interface FileAccessPolicy {
+  files: CompanyFile[];
+  grants: FileAccessGrant[];
+  containments: FileUserContainment[];
+  attempts: FileAccessAttempt[];
+  users: string[];
+  scoring: FileAccessScoring;
+}
+
 export interface CommandCenterStatus {
   threatScore: number;
   trustScore: number;

@@ -26,6 +26,9 @@ import type {
   ClassifiedAsset,
   DeceptionAsset,
   EventList,
+  FileAccessAttemptInput,
+  FileAccessDecision,
+  FileAccessPolicy,
   GovernancePolicy,
   HealthStatus,
   IdentityResetStatus,
@@ -2170,6 +2173,154 @@ export function useListClassifiedAssets<TData = Awaited<ReturnType<typeof listCl
 
 
 
+
+export const getGetFileAccessPolicyUrl = () => {
+
+
+
+
+  return `/api/file-access/policy`
+}
+
+/**
+ * @summary Get company file registry, per-user IAM grants, containment, and scoring rules
+ */
+export const getFileAccessPolicy = async ( options?: RequestInit): Promise<FileAccessPolicy> => {
+
+  return customFetch<FileAccessPolicy>(getGetFileAccessPolicyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFileAccessPolicyQueryKey = () => {
+    return [
+    `/api/file-access/policy`
+    ] as const;
+    }
+
+
+export const getGetFileAccessPolicyQueryOptions = <TData = Awaited<ReturnType<typeof getFileAccessPolicy>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFileAccessPolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFileAccessPolicyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFileAccessPolicy>>> = ({ signal }) => getFileAccessPolicy({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFileAccessPolicy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFileAccessPolicyQueryResult = NonNullable<Awaited<ReturnType<typeof getFileAccessPolicy>>>
+export type GetFileAccessPolicyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get company file registry, per-user IAM grants, containment, and scoring rules
+ */
+
+export function useGetFileAccessPolicy<TData = Awaited<ReturnType<typeof getFileAccessPolicy>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFileAccessPolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFileAccessPolicyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEvaluateFileAccessUrl = () => {
+
+
+
+
+  return `/api/file-access/attempt`
+}
+
+/**
+ * @summary Evaluate a file access attempt with trust-adaptive threat scoring
+ */
+export const evaluateFileAccess = async (fileAccessAttemptInput: FileAccessAttemptInput, options?: RequestInit): Promise<FileAccessDecision> => {
+
+  return customFetch<FileAccessDecision>(getEvaluateFileAccessUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      fileAccessAttemptInput,)
+  }
+);}
+
+
+
+
+export const getEvaluateFileAccessMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof evaluateFileAccess>>, TError,{data: BodyType<FileAccessAttemptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof evaluateFileAccess>>, TError,{data: BodyType<FileAccessAttemptInput>}, TContext> => {
+
+const mutationKey = ['evaluateFileAccess'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof evaluateFileAccess>>, {data: BodyType<FileAccessAttemptInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  evaluateFileAccess(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EvaluateFileAccessMutationResult = NonNullable<Awaited<ReturnType<typeof evaluateFileAccess>>>
+    export type EvaluateFileAccessMutationBody = BodyType<FileAccessAttemptInput>
+    export type EvaluateFileAccessMutationError = ErrorType<void>
+
+    /**
+ * @summary Evaluate a file access attempt with trust-adaptive threat scoring
+ */
+export const useEvaluateFileAccess = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof evaluateFileAccess>>, TError,{data: BodyType<FileAccessAttemptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof evaluateFileAccess>>,
+        TError,
+        {data: BodyType<FileAccessAttemptInput>},
+        TContext
+      > => {
+      return useMutation(getEvaluateFileAccessMutationOptions(options));
+    }
 
 export const getGetIdentityResetStatusUrl = () => {
 

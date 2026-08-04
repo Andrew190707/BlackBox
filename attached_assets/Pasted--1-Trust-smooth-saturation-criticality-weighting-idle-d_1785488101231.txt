@@ -1,0 +1,346 @@
+*1. Trust — smooth saturation + criticality weighting + idle drift:*
+
+
+𝑇
+𝑖
+(
+𝑡
++
+1
+)
+=
+clip
+(
+𝑇
+𝑖
+(
+𝑡
+)
++
+𝜂
+𝑟
+𝑅
+𝑖
+(
+𝑡
+)
+(
+1
+−
+𝑇
+𝑖
+(
+𝑡
+)
+100
+)
+−
+∑
+𝑘
+∈
+𝐸
+𝑖
+(
+𝑡
+)
+𝜂
+𝑝
+(
+𝑘
+)
+𝑐
+𝑎
+(
+𝑘
+)
+−
+𝜆
+(
+𝑇
+𝑖
+(
+𝑡
+)
+−
+𝑇
+0
+)
+1
+[
+idle
+]
+,
+ 
+0
+,
+ 
+100
+)
+T
+i
+	​
+
+(t+1)=clip(T
+i
+	​
+
+(t)+η
+r
+	​
+
+R
+i
+	​
+
+(t)(1−
+100
+T
+i
+	​
+
+(t)
+	​
+
+)−
+k∈E
+i
+	​
+
+(t)
+∑
+	​
+
+η
+p
+(k)
+	​
+
+c
+a
+	​
+
+(k)−λ(T
+i
+	​
+
+(t)−T
+0
+	​
+
+)1[idle], 0, 100)
+𝑐
+𝑎
+(
+𝑘
+)
+∈
+{
+1
+,
+1.5
+,
+2
+,
+3
+}
+c
+a
+	​
+
+(k)∈{1,1.5,2,3} for Public/Internal/Confidential/Critical — same violation costs more trust on a Critical asset.
+(
+1
+−
+𝑇
+𝑖
+/
+100
+)
+(1−T
+i
+	​
+
+/100) — reward gets weaker as trust approaches 100, so it self-limits instead of relying on the hard clip.
+𝜆
+(
+𝑇
+𝑖
+−
+𝑇
+0
+)
+λ(T
+i
+	​
+
+−T
+0
+	​
+
+) — trust drifts back toward a neutral baseline 
+𝑇
+0
+T
+0
+	​
+
+ (e.g. 70) when nothing happens, instead of freezing forever. This is what makes it genuinely "continuous" evaluation rather than "last known value."
+
+*2. Threat — recency-weighted + correlation bonus, O(1) per event:*
+
+
+𝑆
+(
+𝑡
+)
+=
+𝛾
+ 
+𝑆
+(
+𝑡
+−
+1
+)
++
+∑
+𝑘
+=
+1
+𝐾
+𝑤
+𝑘
+𝐼
+𝑘
+(
+𝑡
+)
++
+𝛽
+(
+∣
+𝐴
+(
+𝑡
+)
+∣
+2
+)
+S(t)=γS(t−1)+
+k=1
+∑
+K
+	​
+
+w
+k
+	​
+
+I
+k
+	​
+
+(t)+β(
+2
+∣A(t)∣
+	​
+
+)
+𝛾
+∈
+(
+0
+,
+1
+)
+γ∈(0,1): exponential decay, so a 10-minute-old indicator matters less than one from this second — and it's a running update, not a resummed window, so it's actually cheaper to compute than the original, not just smarter.
+𝐴
+(
+𝑡
+)
+A(t): the set of distinct indicator categories firing right now; 
+(
+∣
+𝐴
+(
+𝑡
+)
+∣
+2
+)
+(
+2
+∣A(t)∣
+	​
+
+) rewards indicators co-occurring (unknown device + odd hour + large transfer at once is worse than the same three spread over three days — this is the multi-stage/kill-chain signal your attack-graph citation already implies).
+
+*3. Decision — actually use 
+𝑇
+𝑖
+T
+i
+	​
+
+, not just 
+𝑆
+S:*
+
+
+𝑆
+eff
+,
+𝑖
+(
+𝑡
+)
+=
+𝑆
+(
+𝑡
+)
+(
+1
++
+𝜅
+(
+1
+−
+𝑇
+𝑖
+(
+𝑡
+)
+/
+100
+)
+)
+S
+eff,i
+	​
+
+(t)=S(t)(1+κ(1−T
+i
+	​
+
+(t)/100))
+
+Feed 
+𝑆
+eff
+,
+𝑖
+S
+eff,i
+	​
+
+ into Algorithm 1's thresholds instead of raw 
+𝑆
+S. Low-trust entities get flagged at a lower effective bar, high-trust entities get more benefit of the doubt — this is the actual "risk-adaptive access" idea your NIST 800-207 citation is about, and it closes the gap where 
+𝑇
+𝑖
+T
+i
+	​
+
+ was computed but never used.

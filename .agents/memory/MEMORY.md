@@ -1,0 +1,1 @@
+- [File access containment](file-access-containment.md) — suspicious file activity is contained per user while severing that user’s reachable trust paths.

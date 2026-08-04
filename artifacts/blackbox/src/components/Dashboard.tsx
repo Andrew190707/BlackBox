@@ -35,6 +35,7 @@ import { ForensicSnapshotsModal } from "@/components/modals/ForensicSnapshotsMod
 import { TrustGraphModal } from "@/components/modals/TrustGraphModal";
 import { AssetClassificationModal } from "@/components/modals/AssetClassificationModal";
 import { AttackerSelectModal } from "@/components/modals/AttackerSelectModal";
+import { FileAccessPanel } from "@/components/FileAccessPanel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -519,6 +520,9 @@ export function Dashboard() {
               )}
             </CardContent>
           </Card>
+
+          {/* Trust Graph — clickable */}
+          <FileAccessPanel />
 
           {/* Trust Graph — clickable */}
           <Card className="border-border bg-card/50 backdrop-blur flex-1 flex flex-col min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
