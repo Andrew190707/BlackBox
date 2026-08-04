@@ -9,6 +9,7 @@ const router = Router();
 const AVATAR_COLORS = [
   "#00ff88", "#00ccff", "#ff6b6b", "#ffcc00", "#cc44ff", "#44aaff", "#ff8844", "#88ff44",
 ];
+const USER_ORDER = ["admin", "analyst", "dev_lead", "hr_admin", "cfo", "ceo", "unknown_user", "attacker"];
 
 function avatarSvg(name: string, color: string): string {
   const initial = name.charAt(0).toUpperCase();
@@ -21,7 +22,9 @@ router.get("/users", async (_req, res) => {
     db.select().from(companyUserProfilesTable),
     db.select().from(trustNodesTable).where(eq(trustNodesTable.type, "USER")),
   ]);
-  const users = profiles.map((profile, idx) => {
+  const users = [...profiles]
+    .sort((a, b) => USER_ORDER.indexOf(a.userName) - USER_ORDER.indexOf(b.userName))
+    .map((profile, idx) => {
     const node = nodeUsers.find((candidate) => candidate.name === profile.userName);
     const name = profile.userName;
     const trustScore = blackBoxState.userTrustScores[name] ?? node?.trustScore ?? 50;
@@ -38,7 +41,7 @@ router.get("/users", async (_req, res) => {
       trustScore: Math.round(trustScore),
       avatar: avatarSvg(name, color),
     };
-  });
+    });
 
   res.json(users);
 });

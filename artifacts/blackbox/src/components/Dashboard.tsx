@@ -7,7 +7,7 @@ import {
   useListSnapshots,
   useListDeceptionAssets,
   useListIncidents,
-  useListTrustScores,
+  useListUsers,
   useGetRiskHistory,
   useInitiateLockdown,
   useLiftLockdown,
@@ -97,7 +97,7 @@ export function Dashboard() {
   const { data: eventsData }   = useListEvents({ limit: 100 });
   const { data: lockdown }     = useGetLockdownState({ query: { queryKey: getGetLockdownStateQueryKey() } });
   const { data: assets }       = useListDeceptionAssets();
-  const { data: trustScores }  = useListTrustScores();
+  const { data: users }        = useListUsers();
   const { data: snapshots }    = useListSnapshots();
   const { data: incidents }    = useListIncidents();
 
@@ -316,18 +316,18 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 px-3 pb-3 max-h-36 overflow-y-auto">
-              {trustScores?.map((t) => (
-                <div key={t.user} className="flex items-center justify-between">
-                  <span className="truncate flex-1 text-[9px]">{t.user}</span>
+              {users?.map((user) => (
+                <div key={user.name} className="flex items-center justify-between">
+                  <span className="truncate flex-1 text-[9px]">{user.name}</span>
                   <div className="flex items-center gap-1.5 ml-2">
                     <div className="w-14 h-1 bg-muted/30 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${t.score > 80 ? "bg-green-500" : t.score > 50 ? "bg-yellow-500" : "bg-destructive"}`}
-                        style={{ width: `${t.score}%` }}
+                        className={`h-full rounded-full transition-all ${user.trustScore > 80 ? "bg-green-500" : user.trustScore > 50 ? "bg-yellow-500" : "bg-destructive"}`}
+                        style={{ width: `${user.trustScore}%` }}
                       />
                     </div>
-                    <span className={`tabular-nums font-bold text-[9px] w-7 text-right ${t.score < 50 ? "text-destructive" : t.score < 80 ? "text-yellow-500" : "text-primary"}`}>
-                      {t.score.toFixed(0)}
+                    <span className={`tabular-nums font-bold text-[9px] w-7 text-right ${user.trustScore < 50 ? "text-destructive" : user.trustScore < 80 ? "text-yellow-500" : "text-primary"}`}>
+                      {user.trustScore.toFixed(0)}
                     </span>
                   </div>
                 </div>
