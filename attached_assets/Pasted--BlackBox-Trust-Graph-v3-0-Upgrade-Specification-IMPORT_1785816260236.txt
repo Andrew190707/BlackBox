@@ -1,0 +1,614 @@
+# BlackBox Trust Graph v3.0 Upgrade Specification
+
+IMPORTANT
+
+This is an upgrade of the EXISTING Trust Graph.
+
+DO NOT redesign the dashboard.
+
+DO NOT create a new page.
+
+DO NOT create another graph.
+
+DO NOT create duplicate functionality.
+
+Keep the existing UI, SVG graph, dark theme, colors, animations, and layout.
+
+Only upgrade the existing Trust Graph.
+
+------------------------------------------------------------
+OBJECTIVE
+------------------------------------------------------------
+
+Transform the current Trust Graph from a static visualization into a live enterprise Zero Trust relationship graph.
+
+The Trust Graph should become the visual representation of
+
+• Identity Trust
+• Device Trust
+• Application Trust
+• Asset Relationships
+• Attack Propagation
+• Containment
+• Recovery
+• Deception
+• AI Analysis
+
+without replacing the Enterprise Access Manager.
+
+------------------------------------------------------------
+ARCHITECTURE
+------------------------------------------------------------
+
+The Trust Graph ONLY represents trust relationships.
+
+The Enterprise Access Manager remains responsible for
+
+• RBAC
+• File Permissions
+• Authorization
+• Access Policies
+
+DO NOT duplicate file permissions inside the Trust Graph.
+
+Instead, when the Access Manager detects violations, notify the Trust Graph so it can update trust relationships visually.
+
+------------------------------------------------------------
+KEEP EXISTING LAYOUT
+------------------------------------------------------------
+
+Keep the graph structure.
+
+Users
+
+↓
+
+Devices
+
+↓
+
+Applications
+
+↓
+
+Assets
+
+Do not redesign the graph.
+
+If possible, insert a lightweight Server/Service layer between Applications and Assets only if it integrates naturally without changing the UI significantly.
+
+------------------------------------------------------------
+MAKE EVERY NODE INTERACTIVE
+------------------------------------------------------------
+
+Clicking a User opens
+
+• Role
+• Department
+• Trust Score
+• Behavior Score
+• Current Device
+• Current Session
+• Current IP
+• Current Location
+• Last Login
+• Recent Activity
+• Recent Violations
+• Incident History
+
+Clicking a Device opens
+
+• Hostname
+• OS
+• Patch Status
+• EDR Status
+• Device Health
+• Current User
+• Running Processes
+• Last Scan
+
+Clicking an Application opens
+
+• Version
+• Privilege
+• Running State
+• Connected Assets
+• Network Activity
+• Risk Level
+
+Clicking an Asset opens
+
+• Classification
+• Department
+• Owner
+• Sensitivity
+• Allowed Roles
+• Recent Access
+• Download Count
+• Violation Count
+• Related Incidents
+
+------------------------------------------------------------
+INTERACTIVE EDGES
+------------------------------------------------------------
+
+Every relationship line should also be clickable.
+
+Display
+
+Relationship Type
+
+Relationship Trust %
+
+Status
+
+Established Time
+
+Last Activity
+
+Reason if Severed
+
+Example
+
+Relationship
+
+User → Device
+
+Trust
+
+96%
+
+Status
+
+Trusted
+
+Reason if Severed
+
+User → Asset Circuit Breaker
+
+------------------------------------------------------------
+NEW PATH STATES
+------------------------------------------------------------
+
+Replace simple Active/Severed with
+
+🟢 Trusted
+
+🟡 Suspicious
+
+🟠 Elevated
+
+🔴 Compromised
+
+🔴 Dashed = Severed
+
+🔵 Recovered
+
+⚫ Contained
+
+Animate transitions smoothly.
+
+------------------------------------------------------------
+LIVE ANIMATIONS
+------------------------------------------------------------
+
+When attack simulation starts
+
+animate trust moving across the graph.
+
+Normal
+
+Green pulse
+
+↓
+
+Suspicious
+
+Yellow pulse
+
+↓
+
+Compromised
+
+Orange pulse
+
+↓
+
+Critical
+
+Red pulse
+
+↓
+
+Containment
+
+Dashed Red
+
+↓
+
+Recovery
+
+Blue
+
+The graph should never feel static.
+
+------------------------------------------------------------
+NODE STATUS
+------------------------------------------------------------
+
+Nodes should display
+
+Healthy
+
+Suspicious
+
+Compromised
+
+Contained
+
+Recovered
+
+using subtle badges and border colors.
+
+------------------------------------------------------------
+TRUST SCORE HISTORY
+------------------------------------------------------------
+
+Every node should maintain trust history.
+
+Display
+
+Current Trust
+
+Previous Trust
+
+Trend
+
+Reason
+
+Example
+
+95
+
+↓
+
+82
+
+Reason
+
+Unauthorized File Access
+
+USB Mounted
+
+Unknown Device
+
+Mass Download
+
+------------------------------------------------------------
+BEHAVIOR ENGINE
+------------------------------------------------------------
+
+Visualize behavioral anomalies.
+
+Examples
+
+Impossible Travel
+
+Unknown Device
+
+USB Inserted
+
+Cloud Upload
+
+Mass Download
+
+Credential Theft
+
+Privilege Escalation
+
+Token Abuse
+
+Session Hijacking
+
+Lateral Movement
+
+Remote Login
+
+Each anomaly should visually reduce trust.
+
+------------------------------------------------------------
+CROSS-MODULE INTEGRATION
+------------------------------------------------------------
+
+Do NOT duplicate logic.
+
+Instead react to existing modules.
+
+Enterprise Access Manager
+
+↓
+
+Policy Violation
+
+↓
+
+Trust Graph updates
+
+Live Event Feed
+
+↓
+
+Click Event
+
+↓
+
+Highlight affected trust path
+
+Incident Timeline
+
+↓
+
+Click Incident
+
+↓
+
+Replay graph state
+
+Attack Simulation
+
+↓
+
+Animate attack path
+
+Circuit Breakers
+
+↓
+
+Sever graph relationships
+
+Lockdown
+
+↓
+
+Fade isolated nodes
+
+Deception
+
+↓
+
+Highlight honey assets
+
+Forensics
+
+↓
+
+Display snapshot indicator
+
+------------------------------------------------------------
+CIRCUIT BREAKER VISUALIZATION
+------------------------------------------------------------
+
+When a breaker trips
+
+Animate the affected edge.
+
+Display
+
+⚡ Severed by
+
+User → Asset Breaker
+
+Device Breaker
+
+Remote Access Breaker
+
+Application Breaker
+
+External Transfer Breaker
+
+------------------------------------------------------------
+LOCKDOWN VISUALIZATION
+------------------------------------------------------------
+
+When BlackBox enters Lockdown
+
+Grey out isolated nodes
+
+Fade disconnected relationships
+
+Display
+
+Contained
+
+badge
+
+Show which Lockdown Phase isolated the node.
+
+------------------------------------------------------------
+DECEPTION
+------------------------------------------------------------
+
+Honeyfiles
+
+Decoy Credentials
+
+Decoy Shares
+
+should display a 🍯 icon.
+
+When triggered
+
+Flash node
+
+Highlight attacker path
+
+Generate Live Event
+
+Generate Timeline Event
+
+------------------------------------------------------------
+FORENSICS
+------------------------------------------------------------
+
+If a forensic snapshot is taken
+
+display a 📸 icon.
+
+Hovering it displays
+
+Snapshot Time
+
+Captured Memory
+
+Captured Network
+
+Captured Processes
+
+------------------------------------------------------------
+AI SECURITY INSIGHTS
+------------------------------------------------------------
+
+Inside the Trust Graph modal
+
+add an AI Recommendation panel.
+
+Example
+
+Finance Manager attempted to access restricted HR records.
+
+Confidence
+
+96%
+
+Likely Insider Threat
+
+91%
+
+Recommended Actions
+
+Trip User → Asset Breaker
+
+Deploy Honeyfiles
+
+Take Snapshot
+
+Initiate Phase 2 Lockdown
+
+Rotate Credentials
+
+------------------------------------------------------------
+INCIDENT REPLAY
+------------------------------------------------------------
+
+Add a timeline slider.
+
+Replay
+
+Healthy
+
+↓
+
+Initial Access
+
+↓
+
+Privilege Escalation
+
+↓
+
+Lateral Movement
+
+↓
+
+Containment
+
+↓
+
+Recovery
+
+Animate every transition.
+
+------------------------------------------------------------
+ASSET VISUALIZATION
+------------------------------------------------------------
+
+Assets should display badges.
+
+Public
+
+Internal
+
+Confidential
+
+Restricted
+
+Critical
+
+Top Secret
+
+instead of relying only on color.
+
+------------------------------------------------------------
+RESET
+------------------------------------------------------------
+
+Reset should smoothly animate.
+
+Reconnect paths
+
+Restore trust
+
+Restore colors
+
+Clear containment
+
+Clear compromised states
+
+Return to healthy baseline.
+
+------------------------------------------------------------
+PERFORMANCE
+------------------------------------------------------------
+
+Reuse
+
+Existing SVG
+
+Existing WebSocket
+
+Existing Simulation Engine
+
+Existing Trust Score Engine
+
+Existing Lockdown
+
+Existing Circuit Breakers
+
+Avoid unnecessary rendering.
+
+------------------------------------------------------------
+FINAL GOAL
+------------------------------------------------------------
+
+The Trust Graph should become the live operational visualization of BlackBox.
+
+It should show
+
+• Trust Relationships
+• Attack Progression
+• Behavioral Changes
+• Risk
+• Circuit Breakers
+• Containment
+• Recovery
+• AI Insights
+• Deception
+• Forensics
+
+without duplicating the Enterprise Access Manager.
+
+The Enterprise Access Manager controls authorization.
+
+The Trust Graph visualizes trust.
+
+Both systems should work together seamlessly.
