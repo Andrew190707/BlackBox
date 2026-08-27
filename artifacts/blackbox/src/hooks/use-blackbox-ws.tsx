@@ -8,6 +8,7 @@ import {
   getGetTrustScoreQueryKey,
   getGetTrustAnalyticsQueryKey,
   getGetTrustGraphQueryKey,
+  getListSnapshotsQueryKey,
   getListIncidentsQueryKey,
   getListUsersQueryKey,
   SecurityEvent
@@ -98,6 +99,20 @@ export function WSProvider({ children }: { children: ReactNode }) {
           break;
         case 'LOCKDOWN_PHASE':
           queryClient.invalidateQueries({ queryKey: getGetLockdownStateQueryKey() });
+          if (msg.data?.phase === 1) {
+            toast({
+              title: '🔴 Red Alert — Lockdown Initiated',
+              description: 'Phase 1: Capturing forensic state snapshot…',
+              variant: 'destructive',
+            });
+          }
+          break;
+        case 'SNAPSHOT_TAKEN':
+          queryClient.invalidateQueries({ queryKey: getListSnapshotsQueryKey() });
+          toast({
+            title: '📸 State Snapshot Captured',
+            description: `Forensic snapshot saved at risk score ${Math.round(msg.data?.triggerRiskScore ?? 0)}. View in State Preservation Snapshots.`,
+          });
           break;
         case 'USER_TRUST_UPDATED':
         case 'SIMULATION_COMPLETE':

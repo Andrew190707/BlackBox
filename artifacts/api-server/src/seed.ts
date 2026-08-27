@@ -5,6 +5,7 @@ import { logger } from "./lib/logger";
 import { v4 as uuidv4 } from "uuid";
 import { seedTrustGraph } from "./engines/trustGraph";
 import { seedFileAccessData } from "./engines/fileAccess";
+import { deployDeception } from "./engines/deception";
 
 const SEED_USERS = ["admin", "analyst", "hr_admin", "dev_lead", "ceo", "unknown_user"];
 const SEED_FILES = [
@@ -29,6 +30,9 @@ function hoursAgo(h: number): Date {
 export async function seedData() {
   await seedTrustGraph();
   await seedFileAccessData();
+  // Keep the deception registry populated in the baseline dashboard state.
+  // deployDeception is idempotent and preserves any triggered assets.
+  await deployDeception();
 
   const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(eventsTable);
   if (Number(count) > 0) {

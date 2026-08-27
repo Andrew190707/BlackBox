@@ -1,6 +1,7 @@
 import { db } from "@workspace/db";
 import { snapshotsTable, eventsTable } from "@workspace/db";
 import { blackBoxState } from "./state";
+import { broadcast } from "./websocket";
 import { logger } from "../lib/logger";
 import { v4 as uuidv4 } from "uuid";
 import { desc, eq } from "drizzle-orm";
@@ -72,5 +73,13 @@ export async function takeSnapshot(triggerRiskScore: number): Promise<string> {
   });
 
   logger.info({ snapshotId: id, triggerRiskScore }, "Forensic snapshot taken");
+
+  // Notify all connected clients so the Snapshots section refreshes immediately
+  broadcast("SNAPSHOT_TAKEN", {
+    snapshotId: id,
+    triggerRiskScore,
+    timestamp: new Date().toISOString(),
+  });
+
   return id;
 }
