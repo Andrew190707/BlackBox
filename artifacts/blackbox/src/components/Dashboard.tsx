@@ -35,6 +35,7 @@ import { ForensicSnapshotsModal } from "@/components/modals/ForensicSnapshotsMod
 import { TrustGraphModal } from "@/components/modals/TrustGraphModal";
 import { AssetClassificationModal } from "@/components/modals/AssetClassificationModal";
 import { AttackerSelectModal } from "@/components/modals/AttackerSelectModal";
+import { DashboardModule, ModuleDetailsModal } from "@/components/modals/ModuleDetailsModal";
 import { FileAccessPanel } from "@/components/FileAccessPanel";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -169,6 +170,7 @@ export function Dashboard() {
   const [graphModal,     setGraphModal]     = useState(false);
   const [assetModal,     setAssetModal]     = useState(false);
   const [attackerModal,  setAttackerModal]  = useState(false);
+  const [moduleModal,    setModuleModal]    = useState<DashboardModule | null>(null);
   const [lastAttacker,   setLastAttacker]   = useState<string | null>(null);
 
   const threatColor =
@@ -224,7 +226,8 @@ export function Dashboard() {
           </Card>
 
           {/* Trust Path Analytics */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setModuleModal("trustAnalytics")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <GitBranch className="w-3 h-3" /> Trust Path Analytics
@@ -236,7 +239,8 @@ export function Dashboard() {
           </Card>
 
           {/* Containment Protocol */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setModuleModal("containment")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <ShieldAlert className="w-3 h-3" /> Containment Protocol
@@ -264,9 +268,9 @@ export function Dashboard() {
                       );
                     })}
                   </div>
-                  <Button variant="outline" size="sm"
+                   <Button variant="outline" size="sm"
                     className="w-full border-primary text-primary hover:bg-primary/20 h-7 text-[10px]"
-                    onClick={() => liftLockdown.mutate()} disabled={liftLockdown.isPending}>
+                     onClick={(event) => { event.stopPropagation(); liftLockdown.mutate(); }} disabled={liftLockdown.isPending}>
                     <Unlock className="w-3 h-3 mr-1.5" /> LIFT LOCKDOWN
                   </Button>
                 </div>
@@ -274,7 +278,7 @@ export function Dashboard() {
                 <Button
                   variant="destructive"
                   className={`w-full h-10 text-[11px] font-bold tracking-widest uppercase transition-all ${confirmLockdown ? "bg-red-700 animate-pulse" : ""}`}
-                  onClick={handleLockdownClick}
+                   onClick={(event) => { event.stopPropagation(); handleLockdownClick(); }}
                   disabled={initiateLockdown.isPending}>
                   <Lock className="w-3.5 h-3.5 mr-2" />
                   {confirmLockdown ? "CONFIRM LOCKDOWN" : "INITIATE LOCKDOWN"}
@@ -297,10 +301,10 @@ export function Dashboard() {
                 </div>
               )}
               <div className="flex gap-2 pt-1">
-                <Button variant="secondary" className="flex-1 h-7 text-[9px]" onClick={handleSimulate} disabled={simulateAttack.isPending}>
+                 <Button variant="secondary" className="flex-1 h-7 text-[9px]" onClick={(event) => { event.stopPropagation(); handleSimulate(); }} disabled={simulateAttack.isPending}>
                   <Play className="w-2.5 h-2.5 mr-1" /> SIMULATE
                 </Button>
-                <Button variant="secondary" className="flex-1 h-7 text-[9px]" onClick={handleReset} disabled={simulateReset.isPending}>
+                 <Button variant="secondary" className="flex-1 h-7 text-[9px]" onClick={(event) => { event.stopPropagation(); handleReset(); }} disabled={simulateReset.isPending}>
                   <RefreshCw className="w-2.5 h-2.5 mr-1" /> RESET
                 </Button>
               </div>
@@ -343,7 +347,8 @@ export function Dashboard() {
         <div className="col-span-6 flex flex-col gap-3 overflow-hidden min-h-0" style={{ height: "calc(100vh - 8.5rem - 1.5rem)" }}>
 
           {/* Governance Narrative */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setModuleModal("narrative")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <Terminal className="w-3 h-3 text-primary" />
@@ -360,7 +365,8 @@ export function Dashboard() {
           <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
 
             {/* Live Event Feed */}
-            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
+            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => setModuleModal("events")}>
               <CardHeader className="pb-1 pt-2 px-3 shrink-0">
                 <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                   <Zap className="w-3 h-3" /> Live Governance Event Stream
@@ -383,7 +389,8 @@ export function Dashboard() {
             </Card>
 
             {/* Incident Command Timeline */}
-            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0">
+            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => setModuleModal("incidents")}>
               <CardHeader className="pb-1 pt-2 px-3 shrink-0">
                 <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                   <History className="w-3 h-3" /> Incident Command Timeline
@@ -421,7 +428,8 @@ export function Dashboard() {
         <div className="col-span-3 flex flex-col gap-3 overflow-y-auto pr-0.5">
 
           {/* Circuit Breakers */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setModuleModal("breakers")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <Shield className="w-3 h-3" /> Trust Path Breakers
@@ -448,12 +456,12 @@ export function Dashboard() {
                   </div>
                   {breaker.status === "TRIPPED" ? (
                     <Button size="sm" variant="outline" className="h-5 text-[8px] border-primary text-primary px-1.5"
-                       onClick={() => resetBreaker.mutate({ name: breaker.name })}>
+                       onClick={(event) => { event.stopPropagation(); resetBreaker.mutate({ name: breaker.name }); }}>
                       RESET
                     </Button>
                   ) : (
                     <Button size="sm" variant="ghost" className="h-5 text-[8px] hover:bg-destructive hover:text-white px-1.5"
-                       onClick={() => tripBreaker.mutate({ name: breaker.name, data: { reason: "Operator override" } })}>
+                        onClick={(event) => { event.stopPropagation(); tripBreaker.mutate({ name: breaker.name, data: { reason: "Operator override" } }); }}>
                       TRIP
                     </Button>
                   )}
@@ -463,7 +471,8 @@ export function Dashboard() {
           </Card>
 
           {/* Identity Reset Status */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setModuleModal("identity")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <KeyRound className="w-3 h-3" /> Identity Reset Protocol
@@ -484,7 +493,7 @@ export function Dashboard() {
                 </ClickableCardTitle>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-3 pb-3" onClick={(e) => e.stopPropagation()}>
+            <CardContent className="px-3 pb-3">
               <AssetClassificationPanel />
             </CardContent>
           </Card>
@@ -566,6 +575,15 @@ export function Dashboard() {
       <ForensicSnapshotsModal   open={snapshotModal}  onClose={() => setSnapshotModal(false)}  />
       <TrustGraphModal          open={graphModal}     onClose={() => setGraphModal(false)}     />
       <AssetClassificationModal open={assetModal}     onClose={() => setAssetModal(false)}     />
+      <ModuleDetailsModal
+        open={moduleModal !== null}
+        module={moduleModal}
+        onClose={() => setModuleModal(null)}
+        lockdown={lockdown}
+        breakers={breakersData?.breakers}
+        events={eventsData?.events}
+        incidents={incidents}
+      />
       <AttackerSelectModal
         open={attackerModal}
         onClose={() => setAttackerModal(false)}
