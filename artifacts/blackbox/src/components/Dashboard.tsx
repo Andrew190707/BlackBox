@@ -72,7 +72,7 @@ function ClickableCardTitle({
       className="flex items-center gap-2 w-full group hover:text-primary transition-colors"
     >
       <Icon className="w-3 h-3" />
-      <span className="uppercase tracking-wider text-[10px] font-bold">{children}</span>
+      <span className="uppercase tracking-wider text-[10px] font-bold text-[#00fafa]">{children}</span>
       <ExternalLink className="w-2.5 h-2.5 ml-auto opacity-0 group-hover:opacity-70 transition-opacity text-primary" />
     </button>
   );
@@ -181,7 +181,6 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col font-mono text-xs overflow-hidden">
-
       {/* ── Header ── */}
       <header className="h-10 border-b border-border flex items-center justify-between px-4 shrink-0 bg-card z-10 relative">
         <div className="flex items-center gap-3">
@@ -198,15 +197,12 @@ export function Dashboard() {
           <StatusBadge status={status} />
         </div>
       </header>
-
       {/* ── Threat Banner ── */}
       <div className={`h-7 flex items-center justify-center font-bold tracking-[0.25em] text-[11px] transition-colors duration-500 uppercase ${threatColor}`}>
         THREAT CONDITION: {riskScore?.threatState || "UNKNOWN"}
       </div>
-
       {/* ── Executive Metrics Bar ── */}
       <ExecutiveMetricsBar />
-
       {/* ── Main Grid ── */}
       <main className="flex-1 p-3 grid grid-cols-12 grid-rows-1 gap-3 overflow-hidden" style={{ height: "calc(100vh - 8.5rem)" }}>
 
@@ -229,7 +225,7 @@ export function Dashboard() {
           <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("trustAnalytics")}>
             <CardHeader className="pb-1 pt-2 px-3">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+              <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#00f4f4]">
                 <GitBranch className="w-3 h-3" /> Trust Path Analytics
               </CardTitle>
             </CardHeader>
@@ -242,7 +238,7 @@ export function Dashboard() {
           <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("containment")}>
             <CardHeader className="pb-1 pt-2 px-3">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+              <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#00dbdb]">
                 <ShieldAlert className="w-3 h-3" /> Containment Protocol
               </CardTitle>
             </CardHeader>
@@ -431,7 +427,7 @@ export function Dashboard() {
           <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("breakers")}>
             <CardHeader className="pb-1 pt-2 px-3">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+              <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#02d1d1]">
                 <Shield className="w-3 h-3" /> Trust Path Breakers
               </CardTitle>
             </CardHeader>
@@ -474,7 +470,7 @@ export function Dashboard() {
           <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("identity")}>
             <CardHeader className="pb-1 pt-2 px-3">
-              <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
+              <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#01e5e5]">
                 <KeyRound className="w-3 h-3" /> Identity Reset Protocol
               </CardTitle>
             </CardHeader>
@@ -568,7 +564,6 @@ export function Dashboard() {
 
         </div>
       </main>
-
       {/* ── Detail Modals ── */}
       <UserTrustModal           open={trustModal}     onClose={() => setTrustModal(false)}     />
       <DeceptionAssetsModal     open={deceptionModal} onClose={() => setDeceptionModal(false)} />
