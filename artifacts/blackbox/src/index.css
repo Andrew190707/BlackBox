@@ -92,6 +92,18 @@
   }
 }
 
+/* Shared liquid-glass surface for every Radix dialog in the app. */
+.liquid-glass-dialog {
+  background: rgba(9, 18, 24, 0.5) !important;
+  border-color: rgba(95, 224, 224, 0.34) !important;
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
 /* Threat states */
 .bg-threat-GREEN { background-color: hsl(120, 100%, 25%); color: black; }
 .bg-threat-YELLOW { background-color: hsl(60, 100%, 50%); color: black; }
