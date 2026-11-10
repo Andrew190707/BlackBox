@@ -180,37 +180,51 @@ export function Dashboard() {
     "bg-threat-GREEN";
 
   return (
-    <div className="min-h-screen w-full bg-background text-foreground flex flex-col font-mono text-xs overflow-hidden">
-      {/* ── Header ── */}
-      <header className="h-10 border-b border-border flex items-center justify-between px-4 shrink-0 bg-card z-10 relative">
-        <div className="flex items-center gap-3">
-          <TerminalSquare className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-bold tracking-widest uppercase text-primary">
-            BLACKBOX
-            <span className="text-muted-foreground text-[9px] ml-2 font-normal">Cyber Governance Layer · v2.1</span>
-          </h1>
+    <div className="nightwatch-app min-h-screen w-full bg-background text-foreground flex flex-col font-sans text-xs">
+      <div className="nightwatch-frame flex min-h-screen flex-col">
+      {/* ── Nightwatch command header ── */}
+      <header className="nightwatch-topbar h-14 border-b flex items-center justify-between px-5 shrink-0 z-10 relative">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="nightwatch-brand-mark"><Shield className="w-5 h-5" /></div>
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-foreground">BLACKBOX</h1>
+              <span className="text-[9px] font-semibold tracking-[0.22em] text-primary uppercase">Nightwatch</span>
+            </div>
+            <p className="text-[9px] tracking-wide text-muted-foreground">CYBER GOVERNANCE LAYER · COMMAND CENTER</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-muted-foreground tabular-nums tracking-widest text-[10px]">
-            {new Date().toISOString().replace("T", " ").slice(0, -5)}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="hidden sm:inline text-muted-foreground tabular-nums tracking-wider text-[9px]">
+            {new Date().toISOString().replace("T", " ").slice(0, -5)} UTC
           </span>
+          <span className="nightwatch-live-label"><span className="nightwatch-live-dot" /> LIVE MONITORING</span>
           <StatusBadge status={status} />
         </div>
       </header>
       {/* ── Threat Banner ── */}
-      <div className={`h-7 flex items-center justify-center font-bold tracking-[0.25em] text-[11px] transition-colors duration-500 uppercase ${threatColor}`}>
+      <div className={`nightwatch-threatbar h-7 flex items-center justify-center font-bold tracking-[0.25em] text-[10px] transition-colors duration-500 uppercase ${threatColor}`}>
         THREAT CONDITION: {riskScore?.threatState || "UNKNOWN"}
       </div>
       {/* ── Executive Metrics Bar ── */}
-      <ExecutiveMetricsBar />
+      <div className="nightwatch-metrics"><ExecutiveMetricsBar /></div>
       {/* ── Main Grid ── */}
-      <main className="flex-1 p-3 grid grid-cols-12 grid-rows-1 gap-3 overflow-hidden" style={{ height: "calc(100vh - 8.5rem)" }}>
+      <main className="nightwatch-main flex-1 p-3 gap-3 overflow-hidden">
+        <nav className="nightwatch-rail" aria-label="BlackBox sections">
+          <a href="#overview" aria-label="Overview" title="Overview"><Activity className="w-4 h-4" /></a>
+          <a href="#trust-graph" aria-label="Trust graph" title="Trust graph"><GitBranch className="w-4 h-4" /></a>
+          <a href="#incident-stream" aria-label="Incident stream" title="Incident stream"><History className="w-4 h-4" /></a>
+          <a href="#containment" aria-label="Containment" title="Containment"><ShieldAlert className="w-4 h-4" /></a>
+          <a href="#evidence" aria-label="Forensic evidence" title="Forensic evidence"><Camera className="w-4 h-4" /></a>
+          <span className="nightwatch-rail-spacer" />
+          <span className="nightwatch-rail-status" title="Secure channel"><Shield className="w-4 h-4" /></span>
+        </nav>
 
         {/* ═══════════════ LEFT COLUMN ═══════════════ */}
-        <div className="col-span-3 flex flex-col gap-3 overflow-y-auto pr-0.5">
+        <div id="overview" className="nightwatch-column nightwatch-left flex flex-col gap-3 pr-0.5">
 
           {/* Dual Score Gauges */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0">
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0">
             <CardHeader className="pb-0 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
                 <Activity className="w-3 h-3" /> Threat · Trust Scores
@@ -222,7 +236,7 @@ export function Dashboard() {
           </Card>
 
           {/* Trust Path Analytics */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("trustAnalytics")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#00f4f4]">
@@ -235,7 +249,7 @@ export function Dashboard() {
           </Card>
 
           {/* Containment Protocol */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card id="containment" className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("containment")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#00dbdb]">
@@ -308,7 +322,7 @@ export function Dashboard() {
           </Card>
 
           {/* User Trust Scores — clickable */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setTrustModal(true)}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground">
@@ -340,10 +354,38 @@ export function Dashboard() {
         </div>
 
         {/* ═══════════════ MIDDLE COLUMN ═══════════════ */}
-        <div className="col-span-6 flex flex-col gap-3 overflow-hidden min-h-0" style={{ height: "calc(100vh - 8.5rem - 1.5rem)" }}>
+        <div className="nightwatch-column nightwatch-center flex flex-col gap-3 min-h-0">
+
+          <div className="nightwatch-page-heading">
+            <div>
+              <div className="text-[8px] tracking-[0.24em] uppercase text-primary font-bold mb-1">BlackBox / Operations</div>
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">Incidents Management</h2>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Monitor, investigate, prioritize and resolve security incidents.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge className="nightwatch-state-badge">{lockdown?.active ? "CONTAINMENT ACTIVE" : "SYSTEM MONITORING"}</Badge>
+            </div>
+          </div>
+
+          <section id="trust-graph" className="nightwatch-graph-section">
+          {/* Trust Graph — clickable */}
+          <Card className="nightwatch-surface nightwatch-graph-card border-border bg-card/50 backdrop-blur shrink-0 flex flex-col min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => setGraphModal(true)}>
+            <CardHeader className="pb-1 pt-2 px-3 shrink-0">
+              <CardTitle className="text-[9px] text-muted-foreground">
+                <ClickableCardTitle icon={GitBranch} onClick={() => setGraphModal(true)}>
+                  Trust Graph
+                </ClickableCardTitle>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-1 overflow-auto flex-1">
+              <TrustGraphPanel />
+            </CardContent>
+          </Card>
+          </section>
 
           {/* Governance Narrative */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("narrative")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
@@ -361,7 +403,7 @@ export function Dashboard() {
           <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
 
             {/* Live Event Feed */}
-            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
+            <Card id="incident-stream" className="nightwatch-surface flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
               onClick={() => setModuleModal("events")}>
               <CardHeader className="pb-1 pt-2 px-3 shrink-0">
                 <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
@@ -385,7 +427,7 @@ export function Dashboard() {
             </Card>
 
             {/* Incident Command Timeline */}
-            <Card className="flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
+            <Card className="nightwatch-surface flex-1 flex flex-col border-border bg-card/50 backdrop-blur overflow-hidden min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
               onClick={() => setModuleModal("incidents")}>
               <CardHeader className="pb-1 pt-2 px-3 shrink-0">
                 <CardTitle className="text-[9px] text-muted-foreground uppercase flex items-center gap-2">
@@ -421,10 +463,10 @@ export function Dashboard() {
         </div>
 
         {/* ═══════════════ RIGHT COLUMN ═══════════════ */}
-        <div className="col-span-3 flex flex-col gap-3 overflow-y-auto pr-0.5">
+        <div className="nightwatch-column nightwatch-right flex flex-col gap-3 pr-0.5">
 
           {/* Circuit Breakers */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("breakers")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#02d1d1]">
@@ -467,7 +509,7 @@ export function Dashboard() {
           </Card>
 
           {/* Identity Reset Status */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setModuleModal("identity")}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] uppercase flex items-center gap-2 text-[#01e5e5]">
@@ -480,7 +522,7 @@ export function Dashboard() {
           </Card>
 
           {/* Asset Classification — clickable */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setAssetModal(true)}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground">
@@ -495,7 +537,7 @@ export function Dashboard() {
           </Card>
 
           {/* Deception Assets — clickable */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setDeceptionModal(true)}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground">
@@ -521,7 +563,7 @@ export function Dashboard() {
           </Card>
 
           {/* Forensic Snapshots — clickable */}
-          <Card className="border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+          <Card id="evidence" className="nightwatch-surface border-border bg-card/50 backdrop-blur shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
             onClick={() => setSnapshotModal(true)}>
             <CardHeader className="pb-1 pt-2 px-3">
               <CardTitle className="text-[9px] text-muted-foreground">
@@ -547,23 +589,11 @@ export function Dashboard() {
           {/* Trust Graph — clickable */}
           <FileAccessPanel />
 
-          {/* Trust Graph — clickable */}
-          <Card className="border-border bg-card/50 backdrop-blur flex-1 flex flex-col min-h-0 cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => setGraphModal(true)}>
-            <CardHeader className="pb-1 pt-2 px-3 shrink-0">
-              <CardTitle className="text-[9px] text-muted-foreground">
-                <ClickableCardTitle icon={GitBranch} onClick={() => setGraphModal(true)}>
-                  Trust Graph
-                </ClickableCardTitle>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-1 overflow-auto flex-1">
-              <TrustGraphPanel />
-            </CardContent>
-          </Card>
+
 
         </div>
       </main>
+      </div>
       {/* ── Detail Modals ── */}
       <UserTrustModal           open={trustModal}     onClose={() => setTrustModal(false)}     />
       <DeceptionAssetsModal     open={deceptionModal} onClose={() => setDeceptionModal(false)} />
